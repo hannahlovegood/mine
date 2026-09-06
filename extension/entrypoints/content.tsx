@@ -1,17 +1,25 @@
 // Mine on the page you are actually on. Top frame only; nothing runs until you ask
-// (or until a remembered site opens the way you left it).
+// (or until a remembered site opens the way you left it). The panel lives in Chrome's side
+// panel; this script keeps one floating button and a live region on the page, applies the
+// edition in place, and answers the panel's commands with snapshots.
 import { defineContentScript } from '#imports';
 import { browser } from 'wxt/browser';
-import { createRoot } from 'react-dom/client';
 import { Controller } from '../src/controller.ts';
-import { Panel } from '../src/panel/Panel.tsx';
-import { PANEL_CSS } from '../src/panel/panel.css.ts';
-import { fontFaceCss } from '../src/apply/css.ts';
+import { fontFaceCss, TOKENS } from '../src/apply/css.ts';
+import { runCommand, snapshot, type PanelCommand } from '../src/bridge.ts';
+import { t } from '@app/copy.ts';
 // Dispatched by history.content.ts (main world) after pushState/replaceState; entrypoints never import each other.
 const URL_CHANGE_EVENT = 'mine:urlchange';
-const RAIL_WIDTH = 360;
-const WIDE = 720;
-const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const FAB_CSS = `
+:host { ${TOKENS} all: initial; font-family: var(--font-interface); font-size: 15px; color: var(--ink); }
+.fab { position: fixed; right: 18px; bottom: 18px; z-index: 2147483000; min-height: 46px; padding: 0 18px 0 14px; border-radius: 23px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 1px 0 var(--rule), 0 6px 20px rgba(0,0,0,0.12); }
+.fab:hover { background: var(--stub); }
+.fab:focus-visible { outline: 3px solid var(--pencil); outline-offset: 2px; }
+.fab .m { display: inline-block; width: 14px; height: 14px; border-bottom: 3px solid var(--pencil); }
+.fab[data-active] { background: var(--ink); color: var(--paper); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+`;
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -26,66 +34,62 @@ export default defineContentScript({
     const c = new Controller(storage);
     const html = document.documentElement;
 
-    // Fonts must be declared in the document scope to reach shadow trees; the page-shift rule lives beside them.
     const fonts = document.createElement('style');
     fonts.id = 'mine-fonts';
     fonts.textContent = fontFaceCss((p) => browser.runtime.getURL(p as never));
-    const shift = document.createElement('style');
-    shift.id = 'mine-panel-css';
-    shift.textContent = 'html[data-mine-open]{overflow-x:clip}';
-    (document.head ?? html).append(fonts, shift);
+    (document.head ?? html).append(fonts);
 
+    // The floating button + live region, in a shadow root.
     const host = document.createElement('mine-root');
     host.style.cssText = 'all:initial;position:static;display:block;';
     const shadow = host.attachShadow({ mode: 'open' });
     const style = document.createElement('style');
-    style.textContent = PANEL_CSS;
-    shadow.appendChild(style);
-    const mount = document.createElement('div');
-    shadow.appendChild(mount);
+    style.textContent = FAB_CSS;
+    const fab = document.createElement('button');
+    fab.type = 'button';
+    fab.className = 'fab';
+    const mark = document.createElement('span');
+    mark.className = 'm';
+    mark.setAttribute('aria-hidden', 'true');
+    const label = document.createElement('span');
+    fab.append(mark, label);
+    const live = document.createElement('div');
+    live.className = 'sr';
+    live.setAttribute('aria-live', 'polite');
+    live.setAttribute('aria-atomic', 'true');
+    shadow.append(style, fab, live);
     document.body.appendChild(host);
     c.setUiRoot(shadow);
-    createRoot(mount).render(<Panel c={c} />);
+    fab.addEventListener('click', () => void browser.runtime.sendMessage({ type: 'OPEN_PANEL' }).catch(() => undefined));
 
-    // Push the page aside while the rail is open on desktop widths so nothing scrolls behind it.
-    // Only the html margin moves: fixed site chrome (sticky headers, chat bubbles) stays where it is,
-    // and overflow-x:clip on html keeps 100vw layouts from growing a horizontal scrollbar.
-    let scale = 1; // the panel's size relative to unzoomed CSS px (see sync below)
-    let shifted = false;
-    const layout = () => {
-      const open = c.state.open;
-      html.toggleAttribute('data-mine-open', open);
-      const want = open && window.innerWidth > WIDE;
-      if (want) {
-        if (!shifted && !reducedMotion()) html.style.setProperty('transition', 'margin-right 150ms ease-out');
-        html.style.setProperty('margin-right', `${Math.round(RAIL_WIDTH * scale)}px`, 'important');
-      } else {
-        html.style.removeProperty('margin-right');
-        html.style.removeProperty('transition');
-      }
-      shifted = want;
+    const render = () => {
+      const s = c.state;
+      const active = s.mode !== 'default' && !!s.tr;
+      fab.toggleAttribute('data-active', active);
+      label.textContent = active ? t(s.lang, 'ext.button.active', { mode: t(s.lang, `modes.${s.mode}` as 'modes.focus') }) : t(s.lang, 'ext.button');
+      if (live.textContent !== s.announcement) live.textContent = s.announcement;
     };
-    let wasOpen = false;
-    c.subscribe(() => {
-      if (c.state.open === wasOpen) return;
-      wasOpen = c.state.open;
-      layout();
-    });
-    window.addEventListener('resize', layout);
+    render();
 
-    // Large zooms the body. The panel counters most of it (to max(1/z, 0.8)) so it grows a little with
-    // the page instead of becoming the smallest UI on screen; while the original is held (compare),
-    // the body zoom is off but the attribute stays, so the host is scaled to the same effective size.
+    // Every state change → the side panel (it filters by sender tab).
+    let queued = false;
+    c.subscribe(() => {
+      render();
+      if (queued) return;
+      queued = true;
+      queueMicrotask(() => {
+        queued = false;
+        void browser.runtime.sendMessage({ type: 'MINE_STATE', snapshot: snapshot(c) }).catch(() => undefined);
+      });
+    });
+
+    // Large zooms the body; the button counters it so it keeps its size.
     const sync = () => {
       const z = Number(html.getAttribute('data-mine-zoom')) || 1;
       const bodyZoom = html.hasAttribute('data-mine-compare') ? 1 : z;
-      scale = z * Math.max(1 / z, 0.8);
-      const hostZoom = scale / bodyZoom;
-      host.style.zoom = Math.abs(hostZoom - 1) < 0.001 ? '' : String(hostZoom);
-      host.toggleAttribute('data-large', html.hasAttribute('data-mine-large'));
-      if (shifted) layout();
+      host.style.zoom = Math.abs(1 / bodyZoom - 1) < 0.001 ? '' : String(1 / bodyZoom);
     };
-    new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['data-mine-zoom', 'data-mine-large', 'data-mine-compare'] });
+    new MutationObserver(sync).observe(html, { attributes: true, attributeFilter: ['data-mine-zoom', 'data-mine-compare'] });
 
     // SPA route changes: the edition was made for the previous URL, so undo it and say so; on a
     // remembered site, re-apply once the app has settled (800 ms after the last body mutation, 3 s cap).
@@ -117,7 +121,6 @@ export default defineContentScript({
     };
     const isRoute = (before: URL, after: URL) => {
       if (before.pathname !== after.pathname || before.search !== after.search) return true;
-      // A hash-only change counts when it looks like a hash router (#/… or #!…), not an in-page anchor.
       return before.hash !== after.hash && /^#[/!]/.test(after.hash);
     };
     const checkUrl = () => {
@@ -132,9 +135,14 @@ export default defineContentScript({
     window.addEventListener('popstate', checkUrl);
     window.addEventListener('hashchange', checkUrl);
 
-    browser.runtime.onMessage.addListener((msg: { type?: string }) => {
-      if (msg?.type === 'TOGGLE_PANEL') c.toggle();
+    // Commands from the side panel and the keyboard shortcut.
+    browser.runtime.onMessage.addListener((msg: { kind?: string; type?: string; cmd?: PanelCommand }, _sender, sendResponse: (r: unknown) => void) => {
+      if (msg?.kind === 'MINE_CMD' && msg.cmd) {
+        void runCommand(c, msg.cmd).then(() => sendResponse(snapshot(c)));
+        return true; // async response
+      }
       if (msg?.type === 'MAKE_IT_MINE') void (c.state.mode === 'default' ? c.selectMode('focus') : c.reset());
+      return undefined;
     });
 
     await c.init();

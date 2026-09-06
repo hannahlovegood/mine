@@ -74,7 +74,7 @@ export const copy = {
   'modes.default.desc': { en: 'The page as published.', zh: '页面原来的样子。' },
   'modes.focus.desc': { en: 'For when there is too much on screen.', zh: '当屏幕上的东西太多。' },
   'modes.plain.desc': { en: 'For when the words are the obstacle.', zh: '当词语本身成了障碍。' },
-  'modes.large.desc': { en: 'For when the text is.', zh: '当字太小。' },
+  'modes.large.desc': { en: 'For when the text is too small.', zh: '当字太小。' },
   'modes.words.desc': { en: 'Describe how the page should feel.', zh: '用你的话说这个页面该是什么感觉。' },
 
   // My words
@@ -116,6 +116,7 @@ export const copy = {
   'colophon.frag.enlarged.one': { en: '1 control enlarged', zh: '放大 1 个控件' },
   'colophon.frag.enlarged.many': { en: '{n} controls enlarged', zh: '放大 {n} 个控件' },
   'colophon.frag.steps': { en: '{fields} fields in {steps} steps', zh: '{fields} 个填写项分成 {steps} 步' },
+  'colophon.steps.n': { en: '{n} steps', zh: '共 {n} 步' },
   'colophon.frag.surfaced.one': { en: '1 choice surfaced', zh: '揭示 1 个可选项' },
   'colophon.frag.surfaced.many': { en: '{n} choices surfaced', zh: '揭示 {n} 个可选项' },
   'colophon.why': { en: 'Why', zh: '为什么' },
@@ -208,6 +209,14 @@ export const copy = {
 
   // Extension
   'ext.button': { en: 'Make it mine', zh: '变成我的' },
+  'ext.open.title': { en: 'This page can be yours.', zh: '这个页面，由你决定。' },
+  'ext.open.sub': { en: 'Same information. Your edition. Nothing filled in, nothing submitted, nothing ticked for you.', zh: '同一份信息，属于你的版本。不填写、不提交、不替你勾选。' },
+  'ext.open.or': { en: 'Or choose an edition', zh: '或者选一种版本' },
+  'ext.edition': { en: '{mode} edition', zh: '{mode}版' },
+  'ext.settings.done': { en: 'Done', zh: '完成' },
+  'ext.noTab': { en: 'Open a web page, then come back here.', zh: '先打开一个网页，再回到这里。' },
+  'ext.unreachable': { en: 'Mine cannot work on this page (browser pages, the extension store and PDFs are off limits). Open an ordinary web page.', zh: '这个页面不能用（浏览器内部页、扩展商店和 PDF 不开放）。换一个普通网页试试。' },
+  'ext.promise': { en: 'Every change is listed here and can be undone. The original is one press away.', zh: '每一处改动都列在这里，都能撤回。原版只隔一次按住。' },
   'ext.button.active': { en: 'Mine · {mode}', zh: '由我 · {mode}' },
   'ext.title': { en: 'This page, your edition', zh: '这个页面，你的版本' },
   'ext.close': { en: 'Close', zh: '关闭' },

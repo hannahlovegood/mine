@@ -7,7 +7,7 @@ export default defineConfig({
     name: 'Mine · 由我',
     short_name: 'Mine',
     description: 'A freedom layer for the web: the page adapts to you, in place, transparently, reversibly. 让任何页面由你决定。',
-    permissions: ['storage', 'activeTab'],
+    permissions: ['storage', 'activeTab', 'sidePanel'],
     host_permissions: ['<all_urls>'],
     action: { default_title: 'Make it mine · 变成我的' },
     web_accessible_resources: [{ resources: ['fonts/*'], matches: ['<all_urls>'] }],
