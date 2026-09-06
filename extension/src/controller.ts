@@ -438,16 +438,29 @@ export class Controller {
     });
     if (candidates.length === 0) return content;
     const rewrites = new Map<string, { plainText: string; terms?: { term: string; plain: string }[] }>();
+    // A model writes ~30 tokens/s: 12 passages in one call is a minute. Four per call, three calls at a
+    // time, 45 s each, and the panel counts them in.
+    const BATCH = 4;
+    const PARALLEL = 3;
+    const DEADLINE = 45_000;
     const cap = translateTo ? 48 : 24;
-    for (let i = 0; i < Math.min(candidates.length, cap); i += 12) {
-      const batch = candidates.slice(i, i + 12).map((b) => ({ id: b.id, text: textOf(b), kind: kindFor(b)! }));
+    const chosen = candidates.slice(0, cap);
+    const batches: ContentBlock[][] = [];
+    for (let i = 0; i < chosen.length; i += BATCH) batches.push(chosen.slice(i, i + BATCH));
+    let done = 0;
+    const progress = () => this.set({ status: `${t(lang, translateTo ? 'ext.translating' : 'ext.rewriting')} ${Math.min(done, chosen.length)} / ${chosen.length}` });
+    progress();
+    const runBatch = async (batch: ContentBlock[]) => {
       try {
-        const r = await rewriteBlocks(batch, lang, chat, undefined, translateTo ? { translateTo } : {});
+        const r = await rewriteBlocks(batch.map((b) => ({ id: b.id, text: textOf(b), kind: kindFor(b)! })), lang, chat, DEADLINE, translateTo ? { translateTo } : {});
         for (const rw of r.rewrites) rewrites.set(rw.id, { plainText: rw.plainText, terms: rw.terms });
       } catch {
         /* a failed batch leaves those passages as written */
       }
-    }
+      done += batch.length;
+      progress();
+    };
+    for (let i = 0; i < batches.length; i += PARALLEL) await Promise.all(batches.slice(i, i + PARALLEL).map(runBatch));
     if (rewrites.size === 0) return null;
     return {
       ...content,

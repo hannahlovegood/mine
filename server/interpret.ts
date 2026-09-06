@@ -134,7 +134,9 @@ export async function interpret(
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), deadlineMs);
     try {
-      let userTurn = text;
+      // The reasons must be readable in the panel's language; a model does not always infer it from the text.
+      const langNote = lang === 'zh' ? '（请用中文写 reasons。）' : '(Write the reasons in English.)';
+      let userTurn = `${text}\n\n${langNote}`;
       for (let attempt = 0; attempt < 2; attempt++) {
         if (attempt === 1 && deadlineMs - elapsed() < 1500) break;
         let raw: string;
@@ -154,7 +156,7 @@ export async function interpret(
           console.log(`[interpret] model ${elapsed()} ms (attempt ${attempt + 1})`);
           return { ...parsed.reply, source: 'model', ms: elapsed() };
         }
-        userTurn = `${text}\n\nYour previous reply was rejected: ${parsed.error}. Return only the JSON object.`;
+        userTurn = `${text}\n\n${langNote}\n\nYour previous reply was rejected: ${parsed.error}. Return only the JSON object.`;
       }
     } finally {
       clearTimeout(timer);

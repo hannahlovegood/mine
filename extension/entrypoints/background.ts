@@ -31,7 +31,7 @@ export default defineBackground(() => {
           if (!s.apiKey) throw new Error('no key');
           const chat = makeChatCall({ LLM_BASE_URL: s.baseUrl || 'https://api.deepseek.com', LLM_MODEL: s.model || 'deepseek-chat', LLM_API_KEY: s.apiKey }, fetch, { maxTokens: m.maxTokens });
           const ac = new AbortController();
-          const timer = setTimeout(() => ac.abort(), 14000);
+          const timer = setTimeout(() => ac.abort(), 50_000);
           try {
             const content = await chat(m.messages ?? [], ac.signal);
             sendResponse({ ok: true, content });
