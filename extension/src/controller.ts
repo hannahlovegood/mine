@@ -330,6 +330,9 @@ export class Controller {
         else notice = t(lang, 'ext.plainUnavailable');
       }
     }
+    // One-at-a-time only makes sense with a real form (four fields or more): a search box, a login pair or a three-field contact form stays as it is.
+    const fieldCount = content.blocks.filter((b) => b.kind === 'field').length;
+    if (prefs.taskMode === 'one-at-a-time' && fieldCount < 4) prefs = { ...prefs, taskMode: 'all' };
     const tr = transform(content, prefs);
     page = { ...page, content };
     // The applier reports user steps and stub toggles here so the panel follows the page.

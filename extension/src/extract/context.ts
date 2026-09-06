@@ -29,6 +29,8 @@ export interface ExtractContext {
   body: Element;
   lang: Lang;
   maxBlocks: number;
+  /** Epoch ms used to judge whether a dated sentence is a live deadline. */
+  now: number;
   /** Region roots other than main, nearest ancestor wins. */
   roots: Map<Element, Region>;
   /** The main content root. */

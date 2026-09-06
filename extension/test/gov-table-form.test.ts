@@ -1,3 +1,5 @@
+// Fixture dates are written for mid-2026; pin the clock so they stay live deadlines.
+const FIXTURE_NOW = Date.parse('2026-06-01T00:00:00Z');
 // A Chinese government "table form": a <table> of label cells and input cells, radios with
 // trailing text labels, a captcha image with onclick, an image submit and a javascript: back
 // link, 本人承诺 / 我已阅读并同意 checkboxes with trailing text, an attachment list, a small
@@ -10,7 +12,7 @@ import { actionsOf, blockText, boxHoldsOnlyItsControl, byKind, deadlinesOf, deci
 
 describe('gov-table-form.html', () => {
   const doc = loadFixture('gov-table-form.html');
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
   const { meta } = page.content;
 
   it('validates, sniffs Chinese, and picks the content column as main with the form inside', () => {

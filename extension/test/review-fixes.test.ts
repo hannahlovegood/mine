@@ -1,3 +1,5 @@
+// Fixture dates are written for mid-2026; pin the clock so they stay live deadlines.
+const FIXTURE_NOW = Date.parse('2026-06-01T00:00:00Z');
 // Extractor-side fixes from docs/review-extension-2026-09-06.md, one describe per finding
 // (numbers in the titles refer to that file). Inline snippets; the three framework fixtures
 // (elementor, element-ui, gov-table-form) cover the rest.
@@ -18,7 +20,7 @@ describe('[0] a control box never swallows an action or foreign content', () => 
     <div class="row"><label for="w">Website</label><input id="w" type="text"><a class="btn" href="/check">Check</a></div>
     <div class="row"><label for="c">Comment</label><textarea id="c"></textarea><span class="hint">Optional</span></div>
   </form></main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('keeps buttons (even icon-only ones) and link-buttons out of every field box', () => {
     const fields = fieldsOf(page);
@@ -46,7 +48,7 @@ describe('[1] widget classes never float or sidebar content inside main', () => 
     <div class="elementor-widget elementor-widget-text-editor"><div class="elementor-widget-container"><p>${LOREM} Second.</p></div></div>
     <div class="widgets-area"><p>${LOREM} Third.</p></div>
   </main><aside class="widget-area"><div class="widget"><ul><li><a href="/a">Alpha</a></li><li><a href="/b">Beta</a></li><li><a href="/c">Gamma</a></li></ul></div></aside></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('keeps the three paragraphs as primary main text and the aside as the only sidebar', () => {
     const texts = byKind(page, 'text');
@@ -65,7 +67,7 @@ describe('[2] link lists and breadcrumbs holding controls are not composite navs
     <nav><a href="/">Home</a><a href="/a">A</a><a href="/b">B</a><a href="/c">C</a><a href="/d">D</a></nav>
     <button type="submit">Go</button>
   </form></main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('still yields both required fields, and no nav box holds a field node', () => {
     const fields = fieldsOf(page);
@@ -89,7 +91,7 @@ describe('[10] faq composites only with a shared wrapper', () => {
     <h3>What documents do I need?</h3><p>Your ID and a proof of address.</p><p>Bring the originals to the appointment.</p>
     <h2>Need help?</h2><p>Call 020 7946 0000 on weekdays between nine and five.</p>
   </main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('pairs the wrapped question with its answer and gives the pair the wrapper as its box', () => {
     const faq = findBlock(page, 'Can I apply twice?')!;
@@ -134,7 +136,7 @@ describe('[14][15][20][22] the floating rule never demotes a deadline, a primary
       <div id="feedback" class="feedback-widget" style="position:fixed;right:0;bottom:0"><p>We would love your feedback on this page. Tell us what you think about the new design.</p><button type="button">Give feedback</button></div>
       <p>${LOREM}</p>
     </main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('keeps the sticky top bar as the primary site menu, not a notice', () => {
     const menu = navsOf(page).find((n) => n.importance === 'primary')!;
@@ -175,7 +177,7 @@ describe('[18][19] attestations: agree/accept/acknowledge about terms or policy,
     <div><input type="checkbox" id="c7"> 同意接收活动推送消息</div>
     <button type="submit">Send</button>
   </form></main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('reads the labels from the trailing text or span and decides optional by the subject of the agreement', () => {
     expect(decisionsOf(page).map((d) => [d.label, d.optional, d.importance])).toEqual([
@@ -200,7 +202,7 @@ describe('[21] notice classes only demote small containers; 日前 / on or befor
     <div class="notice-tip">温馨提示：办理时请携带身份证原件及复印件各一份。</div>
     <div class="alert"><p>注意：请于6月30日前完成网上申报，逾期不再受理。</p></div>
   </main></body></html>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('keeps the body paragraphs of a large .notice container primary text, and the small tip a secondary notice', () => {
     const body = byKind(page, 'text').filter((t) => t.text.startsWith('为贯彻落实'));
@@ -232,7 +234,7 @@ describe('[29][30] a page-wide form is narrowed to its controls; controls outsid
     </div>
     <div class="footer"><p>© Elm County. All rights reserved by the council.</p><input type="submit" value="Send feedback"></div>
   </form></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('narrows the form root to the common wrapper of the main controls (here the content column, since the newsletter field is in main)', () => {
     expect(page.form).toBe(doc.querySelector('.content'));
@@ -272,7 +274,7 @@ describe('[38][39] validation messages are help text; live regions are never sec
   <div role="status">Your draft was saved a moment ago and will be kept for thirty days.</div>
   <div class="alert alert-info">Offices are closed on public holidays and the day after them.</div>
   </main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('folds .invalid-feedback into the field as help', () => {
     expect(fieldsOf(page)[0]).toMatchObject({ label: 'Email', help: 'Please provide a valid email address.' });
@@ -298,7 +300,7 @@ describe('[45] promo/header class rules do not catch primary content', () => {
       <div class="promo-box"><p>Download the app for reminders on your phone and updates about your case.</p><a href="/app">Get it</a></div>
       <p>${LOREM}</p>
     </div></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('does not make .page-header a header root, and keeps its h1 the primary level-1 title', () => {
     expect(page.regions.get('header')).toBeUndefined();
@@ -325,7 +327,7 @@ describe('[46] the main root holds every control that follows the title', () => 
       <div class="apply"><h2>Apply</h2><form><label for="a">Name</label><input id="a" required><label for="b">Email</label><input id="b" type="email"><button type="submit">Apply</button></form></div>
       <div class="site-footer"><p>© 2026 Elm County Council. All rights reserved.</p></div>
     </div></body>`);
-    const page = extractPage(doc);
+    const page = extractPage(doc, { now: FIXTURE_NOW });
     expect(page.main.contains(doc.querySelector('form')!)).toBe(true);
     expect(page.main.contains(doc.querySelector('article')!)).toBe(true);
     expect(fieldsOf(page).map((f) => [f.label, f.region])).toEqual([
@@ -342,7 +344,7 @@ describe('[46] the main root holds every control that follows the title', () => 
       <tr><td class="menu">${MENU}</td><td class="body"><h1>Permit</h1><p>${LOREM}</p><p>${LOREM} Twice.</p><p>${LOREM} Thrice.</p></td></tr>
       <tr><td colspan="2"><form><label for="a">Name</label><input id="a"><label for="b">Plate</label><input id="b"><input type="submit" value="Apply"></form></td></tr>
     </tbody></table></body>`);
-    const page = extractPage(doc);
+    const page = extractPage(doc, { now: FIXTURE_NOW });
     expect(page.main.contains(doc.querySelector('form')!)).toBe(true);
     expect(fieldsOf(page).map((f) => [f.label, f.region])).toEqual([
       ['Name', undefined],
@@ -361,7 +363,7 @@ describe('[47] tab bars are not navigation', () => {
     <button type="submit">Submit</button>
   </form></main>
   <footer><ul><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="/contact">Contact</a></li></ul></footer></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('emits one primary, ungrouped action per tab and keeps real link lists as navs', () => {
     const tabs = actionsOf(page).filter((a) => !a.primary);
@@ -388,7 +390,7 @@ describe('[63] a header search form is never the form root', () => {
       <div class="MuiFormControl-root"><label for="e">Email</label><input id="e" type="email"></div>
       <button type="button" class="MuiButton-containedPrimary">Create account</button>
     </div></main></body>`);
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
 
   it('picks the common wrapper of the main controls and skips the search box as chrome', () => {
     expect(page.form).toBe(doc.querySelector('.MuiBox-root'));
@@ -407,7 +409,7 @@ describe('[64] attachment and download lists in main are instructions, not navs'
       <ul><li><a href="a.pdf">Application form (PDF)</a></li><li><a href="b.docx">Budget template (DOCX)</a></li><li><a href="c.xlsx">Cost sheet (XLSX)</a></li></ul>
       <ul><li><a href="/about">About us</a></li><li><a href="/news">News</a></li><li><a href="/contact">Contact</a></li></ul>
     </main></body>`);
-    const page = extractPage(doc);
+    const page = extractPage(doc, { now: FIXTURE_NOW });
     const list = findBlock(page, 'Budget template')!;
     expect(list.kind).toBe('instruction');
     expect(list.importance).toBe('primary');
@@ -419,7 +421,7 @@ describe('[64] attachment and download lists in main are instructions, not navs'
 describe('[53] rootOf maps every rooted block to its region root element', () => {
   it('uses the header/footer roots and main, and omits blocks that only have a position', () => {
     const doc = parseHtml(`<body><header><nav>${MENU}</nav></header><main><p>${LOREM}</p></main><footer><p>© 2026 Elm County Council. All rights reserved.</p></footer><div class="chat" style="position:fixed"><button type="button">Chat with us</button></div></body>`);
-    const page = extractPage(doc);
+    const page = extractPage(doc, { now: FIXTURE_NOW });
     const [nav, text, footer, chat] = page.content.blocks;
     expect([nav!.kind, text!.kind, footer!.kind, chat!.kind]).toEqual(['nav', 'text', 'text', 'action']);
     expect(page.rootOf?.get(nav!.id)).toBe(doc.querySelector('header'));

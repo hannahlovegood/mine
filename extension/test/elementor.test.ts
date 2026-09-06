@@ -1,3 +1,5 @@
+// Fixture dates are written for mid-2026; pin the clock so they stay live deadlines.
+const FIXTURE_NOW = Date.parse('2026-06-01T00:00:00Z');
 // An Elementor (WordPress) page: every element carries `elementor-widget*` classes, the form is
 // an `elementor-form` with `elementor-field-group` wrappers, an acceptance checkbox whose label
 // links to the privacy policy, a semantic header/main/aside/footer, and a fixed back-to-top link.
@@ -10,7 +12,7 @@ import { actionsOf, blockText, boxHoldsOnlyItsControl, byKind, deadlinesOf, deci
 
 describe('elementor.html', () => {
   const doc = loadFixture('elementor.html');
-  const page = extractPage(doc);
+  const page = extractPage(doc, { now: FIXTURE_NOW });
   const { blocks, meta } = page.content;
 
   it('validates and finds the semantic landmarks, none of them inside main', () => {

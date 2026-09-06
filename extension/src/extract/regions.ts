@@ -168,7 +168,7 @@ export function findRegions(doc: Document, body: Element): RegionInfo {
   // utility roots
   const topAnchor = headerRoot ?? siteMenu ?? (main !== body ? main : null);
   const partial: ExtractContext = {
-    doc, body, lang: 'en', maxBlocks: 0, roots, main, siteMenu, anchor, form: null,
+    doc, body, lang: 'en', maxBlocks: 0, now: 0, roots, main, siteMenu, anchor, form: null,
     controls: new Map(), memberOf: new Map(), consumed: new Set(), headings: [],
   };
   for (const nav of navLikes) {

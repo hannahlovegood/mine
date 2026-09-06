@@ -548,13 +548,22 @@ function isPromoBox(node: Element, ctx: ExtractContext): boolean {
   return smallContainer(node, ctx) && !node.querySelector(HEADING_SELECTOR) && !hasPrimaryActionInside(node, ctx);
 }
 
+/** A dated sentence is a live deadline only within a window: 30 days past to 3 years ahead of `now`.
+ *  (A 2019 date in an encyclopaedia article is history, not something to echo at the top.) */
+export function isLiveDeadline(iso: string, now: number): boolean {
+  const t = Date.parse(`${iso}T00:00:00Z`);
+  if (Number.isNaN(t)) return false;
+  const day = 86_400_000;
+  return t >= now - 30 * day && t <= now + 3 * 365 * day;
+}
+
 /** Kind + importance of a text leaf. `region` decides plain text's importance. */
 export function classifyText(el: Element, text: string, region: Region, ctx: ExtractContext): TextClass {
   const hits = legalHits(text);
   const plain: TextClass = { kind: 'text', importance: region === 'main' ? 'primary' : 'secondary', legalHits: hits };
   // a dated deadline and legal/privacy prose are critical wherever they sit — before the floating test
   const date = findDeadline(text, ctx.lang);
-  if (date) return { kind: 'deadline', importance: 'critical', date, legalHits: hits };
+  if (date && isLiveDeadline(date, ctx.now)) return { kind: 'deadline', importance: 'critical', date, legalHits: hits };
   if ((hits >= 2 && isLegalProse(el, text)) || containerHit(el, ctx, isLegalContainer)) {
     return { kind: 'legal', importance: PRIVACY.test(text) ? 'critical' : 'primary', legalHits: hits };
   }

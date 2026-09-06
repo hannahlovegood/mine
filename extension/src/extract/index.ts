@@ -95,6 +95,8 @@ export type { Region } from './context.ts';
 export interface ExtractOptions {
   lang?: Lang;
   maxBlocks?: number;
+  /** The clock used to judge whether a dated sentence is a live deadline (default: now). */
+  now?: Date | number;
 }
 
 export interface ExtractedPage {
@@ -180,6 +182,7 @@ function extract(doc: Document, opts: ExtractOptions): ExtractedPage {
     body,
     lang,
     maxBlocks,
+    now: opts.now instanceof Date ? opts.now.getTime() : typeof opts.now === 'number' ? opts.now : Date.now(),
     roots: regionInfo.roots,
     main: regionInfo.main,
     siteMenu: regionInfo.siteMenu,
