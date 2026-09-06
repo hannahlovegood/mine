@@ -1,0 +1,315 @@
+// A small EN page for the engine tests: a fictional county housing grant.
+// It exercises every block kind, every importance, several regions and all four
+// step groups, so the invariants and the per-preset expectations can run
+// before the real demo content (T03) exists.
+//
+// Digit sequences in every `plainText` / `plainHelp` match the original text
+// exactly (invariant I3).
+import type { PageContent } from '../src/engine/schema.ts';
+
+export const fixture: PageContent = {
+  meta: {
+    title: 'Housing Stability Grant — online application',
+    lang: 'en',
+    stepOrder: [
+      { id: 'start', title: 'Before you start' },
+      { id: 'you', title: 'About you' },
+      { id: 'home', title: 'Your home' },
+      { id: 'review', title: 'Review and submit' },
+    ],
+  },
+  blocks: [
+    {
+      id: 'main-nav',
+      kind: 'nav',
+      importance: 'primary',
+      region: 'header',
+      items: [
+        'Home',
+        'Services',
+        'Housing',
+        'Benefits',
+        'Permits',
+        'Payments',
+        'Courts',
+        'Records',
+        'Jobs',
+        'News',
+        'Events',
+        'Contact',
+      ],
+    },
+    {
+      id: 'app-promo',
+      kind: 'promo',
+      importance: 'decorative',
+      region: 'header',
+      text: 'Get the Larkspur County app: pay bills, report issues and track requests from your phone.',
+      complexity: 'simple',
+    },
+    {
+      id: 'download-pdf',
+      kind: 'action',
+      importance: 'primary',
+      region: 'utility',
+      label: 'Download the paper form (PDF)',
+      primary: false,
+    },
+    {
+      id: 'maintenance-notice',
+      kind: 'notice',
+      importance: 'secondary',
+      region: 'utility',
+      text: 'Scheduled maintenance: the portal will be unavailable on Saturday 12 October from 02:00 to 06:00.',
+      complexity: 'simple',
+    },
+    {
+      id: 'title',
+      kind: 'heading',
+      importance: 'primary',
+      level: 1,
+      text: 'Housing Stability Grant — online application',
+      complexity: 'simple',
+    },
+    {
+      id: 'hero-image',
+      kind: 'image',
+      importance: 'decorative',
+      src: '/img/hero-housing.jpg',
+      alt: '',
+      decorative: true,
+    },
+    {
+      id: 'intro',
+      kind: 'text',
+      importance: 'primary',
+      complexity: 'complex',
+      text: 'The Housing Stability Grant provides a one-off payment of up to $2,400 to eligible households in rent arrears, disbursed to the landlord upon verification of the tenancy and the arrears schedule.',
+      plainText:
+        'The Housing Stability Grant is a one-off payment of up to $2,400 for households behind on rent. Once we have checked your tenancy and what you owe, we pay the money to your landlord.',
+      terms: [
+        { term: 'arrears', plain: 'Rent you owe that is already late.' },
+        { term: 'disbursed', plain: 'Paid out.' },
+      ],
+    },
+    {
+      id: 'eligibility',
+      kind: 'text',
+      importance: 'primary',
+      complexity: 'complex',
+      group: 'start',
+      text: 'Applicants must be resident in Larkspur County for no fewer than 90 days, hold a tenancy in their own name, and have a gross household income at or below 80% of the Area Median Income (AMI) for the current year.',
+      plainText:
+        'To apply you must: have lived in Larkspur County for at least 90 days, have the tenancy in your own name, and have a household income of 80% of the Area Median Income (AMI) or less.',
+      terms: [
+        {
+          term: 'Area Median Income',
+          plain: 'The middle income for the county: half of households earn more, half earn less.',
+        },
+      ],
+    },
+    {
+      id: 'what-you-need',
+      kind: 'text',
+      importance: 'primary',
+      complexity: 'medium',
+      group: 'start',
+      text: 'Have ready: proof of identity, your two most recent payslips and a copy of your tenancy agreement.',
+    },
+    {
+      id: 'deadline',
+      kind: 'deadline',
+      importance: 'critical',
+      group: 'start',
+      date: '2026-10-15',
+      text: 'Applications must be received by 17:00 on 15 October 2026; submissions after that time will not be considered.',
+      plainText:
+        'Your application must arrive by 17:00 on 15 October 2026. Anything sent after that is not considered.',
+    },
+    {
+      id: 'how-assessed',
+      kind: 'text',
+      importance: 'primary',
+      complexity: 'complex',
+      group: 'start',
+      text: 'Applications are assessed in order of receipt against the criteria in Schedule 2 of the Housing Assistance Ordinance, and a written determination is issued within 21 working days.',
+      plainText:
+        'We check applications in the order they arrive, using the rules in Schedule 2 of the Housing Assistance Ordinance. You get a written decision within 21 working days.',
+      terms: [
+        { term: 'determination', plain: 'The county’s written decision on your application.' },
+        {
+          term: 'Housing Assistance Ordinance',
+          plain: 'The local law that sets the rules for this grant.',
+        },
+      ],
+    },
+    {
+      id: 'related-links',
+      kind: 'nav',
+      importance: 'secondary',
+      region: 'sidebar',
+      items: [
+        'Rent relief',
+        'Utility assistance',
+        'Eviction prevention',
+        'Tenant rights',
+        'Housing counselling',
+        'Emergency shelter',
+        'Legal aid',
+        'Council housing',
+      ],
+    },
+    {
+      id: 'instructions',
+      kind: 'instruction',
+      importance: 'primary',
+      complexity: 'medium',
+      group: 'you',
+      text: 'Complete every field marked required. A draft may be saved and resumed within 30 days.',
+      plainText:
+        'Fill in every field marked required. You can save a draft and come back to it within 30 days.',
+    },
+    {
+      id: 'full-name',
+      kind: 'field',
+      importance: 'critical',
+      group: 'you',
+      label: 'Full legal name',
+      input: 'text',
+      required: true,
+    },
+    {
+      id: 'date-of-birth',
+      kind: 'field',
+      importance: 'critical',
+      group: 'you',
+      label: 'Date of birth',
+      input: 'date',
+      required: true,
+      help: 'Format 31/12/1990. Applicants must be 18 or over on the closing date.',
+      plainHelp:
+        'Write it as day/month/year, like 31/12/1990. You must be 18 or older on the closing date.',
+    },
+    {
+      id: 'form-image',
+      kind: 'image',
+      importance: 'primary',
+      group: 'home',
+      src: '/img/tenancy-example.png',
+      alt: 'Example of the tenancy agreement page to upload, with the rent amount circled',
+      decorative: false,
+    },
+    {
+      id: 'address',
+      kind: 'field',
+      importance: 'critical',
+      group: 'home',
+      label: 'Current address',
+      input: 'text',
+      required: true,
+    },
+    {
+      id: 'monthly-rent',
+      kind: 'field',
+      importance: 'critical',
+      group: 'home',
+      label: 'Monthly rent',
+      input: 'number',
+      required: true,
+      help: 'The full amount before any housing benefit, in whole dollars.',
+    },
+    {
+      id: 'household-size',
+      kind: 'field',
+      importance: 'primary',
+      group: 'home',
+      label: 'People in your household',
+      input: 'select',
+      required: false,
+      options: ['1', '2', '3', '4', '5 or more'],
+    },
+    {
+      id: 'privacy-notice',
+      kind: 'legal',
+      importance: 'critical',
+      complexity: 'complex',
+      group: 'review',
+      text: 'Larkspur County is the data controller for the personal data supplied in this application. Data is processed under section 4 of the Housing Assistance Ordinance, retained for 7 years after the final determination, and disclosed to third parties only where required by law.',
+      plainText:
+        'The county is responsible for your personal data. It uses the data under section 4 of the Housing Assistance Ordinance, keeps it for 7 years after the decision, and only shares it with others when the law requires.',
+      terms: [
+        {
+          term: 'data controller',
+          plain: 'The organisation responsible for how your personal data is used.',
+        },
+      ],
+    },
+    {
+      id: 'share-consent',
+      kind: 'decision',
+      importance: 'primary',
+      group: 'review',
+      optional: true,
+      preChecked: true,
+      label:
+        'I agree that Larkspur County may share my application data with partner organisations for the purpose of related assistance programmes.',
+      plainLabel: 'Optional: let the county pass your details to other help organisations.',
+      consequence:
+        'Partner organisations may contact you about other programmes. Declining does not affect this application.',
+    },
+    {
+      id: 'attestation',
+      kind: 'decision',
+      importance: 'critical',
+      group: 'review',
+      optional: false,
+      preChecked: false,
+      label:
+        'I confirm that the information given in this application is true and complete to the best of my knowledge.',
+      plainLabel: 'You confirm that what you wrote is true and complete.',
+    },
+    {
+      id: 'save-draft',
+      kind: 'action',
+      importance: 'primary',
+      group: 'review',
+      label: 'Save draft',
+      primary: false,
+    },
+    {
+      id: 'submit',
+      kind: 'action',
+      importance: 'critical',
+      group: 'review',
+      label: 'Submit application',
+      primary: true,
+    },
+    {
+      id: 'faq-1',
+      kind: 'faq',
+      importance: 'secondary',
+      complexity: 'medium',
+      text: 'Can I apply if I already receive housing benefit? Yes, provided your household income remains within the 80% AMI threshold.',
+      plainText:
+        'Can I apply if I already get housing benefit? Yes, as long as your household income is still within the 80% AMI limit.',
+      terms: [
+        { term: 'housing benefit', plain: 'Money from the government that helps pay your rent.' },
+      ],
+    },
+    {
+      id: 'faq-2',
+      kind: 'faq',
+      importance: 'secondary',
+      complexity: 'simple',
+      text: 'How will I be told the outcome? By letter, within 21 working days of the closing date.',
+    },
+    {
+      id: 'rate-page',
+      kind: 'promo',
+      importance: 'decorative',
+      region: 'footer',
+      text: 'Was this page helpful? Rate it in two clicks.',
+      complexity: 'simple',
+    },
+  ],
+};
