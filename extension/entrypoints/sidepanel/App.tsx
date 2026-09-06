@@ -23,17 +23,37 @@ function useBridge() {
   const [unreachable, setUnreachable] = useState(false);
   const tabRef = useRef<Tab>(null);
   tabRef.current = tab;
+  const injected = useRef<Set<number>>(new Set());
 
   const send = useCallback(async (cmd: PanelCommand) => {
     const id = tabRef.current?.id;
     if (id === undefined) return;
+    const ask = async () => (await browser.tabs.sendMessage(id, { kind: 'MINE_CMD', cmd })) as Snapshot | undefined;
     try {
-      const res = (await browser.tabs.sendMessage(id, { kind: 'MINE_CMD', cmd })) as Snapshot | undefined;
+      const res = await ask();
       if (res) {
         setSnap(res);
         setUnreachable(false);
       }
     } catch {
+      // No content script in this tab (opened before Mine was installed or updated): inject once, retry.
+      if (!injected.current.has(id)) {
+        injected.current.add(id);
+        try {
+          const r = (await browser.runtime.sendMessage({ type: 'INJECT', tabId: id })) as { ok?: boolean } | undefined;
+          if (r?.ok) {
+            await new Promise((res) => setTimeout(res, 350));
+            const again = await ask();
+            if (again) {
+              setSnap(again);
+              setUnreachable(false);
+              return;
+            }
+          }
+        } catch {
+          /* fall through */
+        }
+      }
       setUnreachable(true);
     }
   }, []);
