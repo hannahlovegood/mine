@@ -67,6 +67,8 @@ const { extname, join } = require('node:path');
   pass &= ok('provider was asked to translate into en', calls.some((c) => c.translateTo === 'en'), JSON.stringify(calls.map((c) => c.translateTo)));
   const translatedOnPage = await page.evaluate(() => [...document.querySelectorAll('mine-tag')].map((t) => t.shadowRoot?.textContent ?? '').filter((x) => /Translation/.test(x)).length);
   pass &= ok('translation tags on the page', translatedOnPage > 0, `${translatedOnPage}`);
+  const calloutText = await page.evaluate(() => document.querySelector('mine-callout')?.shadowRoot?.querySelector('.text')?.textContent ?? '');
+  pass &= ok('deadline callout shows the translation', calloutText.startsWith('译文：'), calloutText.slice(0, 40));
   const tsum = await panel.locator('.summary').innerText().catch(() => '');
   pass &= ok('summary counts translated passages', /translated/.test(tsum), tsum);
   const fieldAside = await page.evaluate(() => [...document.querySelectorAll('mine-plain')].map((t) => t.shadowRoot?.textContent ?? '').filter((x) => /译文：/.test(x)).length);
