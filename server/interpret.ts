@@ -7,7 +7,12 @@
 // the parser error appended; then fall back to the offline interpreter. Logs timing only.
 import { z } from 'zod';
 import { fallback } from '../src/engine/fallback.ts';
-import { ModelReplySchema, type InterpretResponse, type Lang, type ModelReply } from '../src/engine/schema.ts';
+import {
+  ModelReplySchema,
+  type InterpretResponse,
+  type Lang,
+  type ModelReply,
+} from '../src/engine/schema.ts';
 
 export interface InterpretEnv {
   LLM_BASE_URL?: string;
@@ -51,7 +56,9 @@ export function extractJson(raw: string): string {
   return s;
 }
 
-export function parseReply(raw: string): { ok: true; reply: ModelReply } | { ok: false; error: string } {
+export function parseReply(
+  raw: string,
+): { ok: true; reply: ModelReply } | { ok: false; error: string } {
   let data: unknown;
   try {
     data = JSON.parse(extractJson(raw));
@@ -59,7 +66,11 @@ export function parseReply(raw: string): { ok: true; reply: ModelReply } | { ok:
     return { ok: false, error: `Not valid JSON: ${(e as Error).message}` };
   }
   const r = ModelReplySchema.safeParse(data);
-  if (!r.success) return { ok: false, error: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ') };
+  if (!r.success)
+    return {
+      ok: false,
+      error: r.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
+    };
   return { ok: true, reply: r.data };
 }
 
@@ -78,13 +89,20 @@ export interface ChatCall {
   (messages: { role: 'system' | 'user'; content: string }[], signal: AbortSignal): Promise<string>;
 }
 
+/** §7's ceiling for one interpretation; /api/plain passes its own per-batch budget. */
+export const MAX_TOKENS = 400;
+
 /** Real provider call; `fetchImpl` is injectable for tests. */
-export function makeChatCall(env: Required<InterpretEnv>, fetchImpl: typeof fetch = fetch): ChatCall {
+export function makeChatCall(
+  env: Required<InterpretEnv>,
+  fetchImpl: typeof fetch = fetch,
+  opts: { maxTokens?: number } = {},
+): ChatCall {
   return async (messages, signal) => {
     const body: Record<string, unknown> = {
       model: env.LLM_MODEL,
       temperature: 0,
-      max_tokens: 400,
+      max_tokens: opts.maxTokens ?? MAX_TOKENS,
       messages,
     };
     if (supportsJsonMode(env.LLM_BASE_URL)) body.response_format = { type: 'json_object' };
@@ -156,7 +174,13 @@ export async function handleInterpret(rawBody: string, env: InterpretEnv): Promi
   const req = RequestSchema.safeParse(parsed);
   if (!req.success) return { status: 400, body: { error: 'Expected { text, lang }' } };
   const configured = !!(env.LLM_API_KEY && env.LLM_BASE_URL && env.LLM_MODEL);
-  const chat = configured ? makeChatCall({ LLM_BASE_URL: env.LLM_BASE_URL!, LLM_MODEL: env.LLM_MODEL!, LLM_API_KEY: env.LLM_API_KEY! }) : null;
+  const chat = configured
+    ? makeChatCall({
+        LLM_BASE_URL: env.LLM_BASE_URL!,
+        LLM_MODEL: env.LLM_MODEL!,
+        LLM_API_KEY: env.LLM_API_KEY!,
+      })
+    : null;
   const body = await interpret(req.data.text, req.data.lang, chat);
   return { status: 200, body };
 }
