@@ -84,7 +84,7 @@ async function overflow(page, label) {
     const steps = await page.locator('.stepper .dots i').count();
     let sawChoice = false;
     for (let i = 0; i < steps; i++) {
-      const isChoice = (await page.locator('.stepper .progress .choice').count()) === 1;
+      const isChoice = (await page.locator('.stepper .dots i[data-choice][data-on]').count()) === 1;
       if (isChoice) {
         sawChoice = true;
         const checked = await page.locator('.stepper .decision input[type=checkbox]').first().isChecked();

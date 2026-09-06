@@ -7,3 +7,4 @@ dist
 coverage
 docs/recordings/*.mov
 docs/recordings/*.mp4
+docs/recordings/*.webm
