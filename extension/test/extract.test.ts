@@ -6,7 +6,7 @@ import { PageContentSchema } from '@engine/schema.ts';
 import { extractPage } from '../src/extract/index.ts';
 import { blockText, boxHoldsOnlyItsControl, byKind, loadFixture, parseHtml } from './helpers.ts';
 
-const FIXTURES = ['portal-en.html', 'portal-zh.html', 'gov-notice-zh.html', 'bootstrap-form.html', 'div-soup.html', 'widgets.html'];
+const FIXTURES = ['portal-en.html', 'portal-zh.html', 'gov-notice-zh.html', 'bootstrap-form.html', 'div-soup.html', 'widgets.html', 'elementor.html', 'element-ui.html', 'gov-table-form.html'];
 
 const LOREM =
   'This is a perfectly ordinary paragraph of page text that the extractor should keep as a block.';
@@ -179,12 +179,17 @@ describe('small structural rules', () => {
     expect(byKind(b, 'heading').map((h) => h.level)).toEqual([1, 2, 2, 3]);
   });
 
-  it('pairs a question heading with its answer paragraph as one faq block', () => {
-    const doc = parseHtml('<body><main><h2>Can I apply twice?</h2><p>No. One application per household per cycle.</p><p>Unrelated follow-up paragraph text.</p></main></body>');
+  it('pairs a question heading with its answer paragraph as one faq block when they share a wrapper', () => {
+    const doc = parseHtml('<body><main><h1>Grants</h1><div class="qa"><h2>Can I apply twice?</h2><p>No. One application per household per cycle.</p></div><p>Unrelated follow-up paragraph text.</p></main></body>');
     const page = extractPage(doc);
-    expect(page.content.blocks.map((b) => b.kind)).toEqual(['faq', 'text']);
-    expect(blockText(page.content.blocks[0]!)).toBe('Can I apply twice? — No. One application per household per cycle.');
-    expect(page.content.blocks[0]?.importance).toBe('secondary');
+    expect(page.content.blocks.map((b) => b.kind)).toEqual(['heading', 'faq', 'text']);
+    expect(blockText(page.content.blocks[1]!)).toBe('Can I apply twice? — No. One application per household per cycle.');
+    expect(page.content.blocks[1]?.importance).toBe('secondary');
+    expect(page.boxes.get(page.content.blocks[1]!.id)).toBe(doc.querySelector('.qa'));
+    // review [10]: without a shared wrapper the pair stays two blocks (heading + faq answer), each with its own box
+    const loose = extractPage(parseHtml('<body><main><h1>Grants</h1><h2>Can I apply twice?</h2><p>No. One application per household per cycle.</p></main></body>'));
+    expect(loose.content.blocks.map((b) => [b.kind, b.importance])).toEqual([['heading', 'primary'], ['heading', 'secondary'], ['faq', 'secondary']]);
+    expect(blockText(loose.content.blocks[2]!)).toBe('No. One application per household per cycle.');
   });
 
   it('reads details/summary pairs as faq (Q — A) and a "Q:" paragraph as faq', () => {
@@ -230,7 +235,7 @@ describe('small structural rules', () => {
     expect(deadline.group).toBeUndefined();
   });
 
-  it('classifies notices by role, class and leading word', () => {
+  it('classifies notices by role, class and leading word; a live region is primary, the others secondary', () => {
     const doc = parseHtml(`<body><main>
       <div role="alert">Your session will expire in five minutes. Save your work.</div>
       <div class="alert alert-warning">Please double-check the address before you continue with the form.</div>
@@ -239,7 +244,8 @@ describe('small structural rules', () => {
     </main></body>`);
     const page = extractPage(doc);
     expect(page.content.blocks.map((b) => b.kind)).toEqual(['notice', 'notice', 'notice', 'text']);
-    expect(page.content.blocks.slice(0, 3).every((b) => b.importance === 'secondary')).toBe(true);
+    // review [39]: role=alert/status content must never be foldable — at least primary
+    expect(page.content.blocks.map((b) => b.importance)).toEqual(['primary', 'secondary', 'secondary', 'primary']);
   });
 
   it('rates complexity from sentence length (EN words, ZH characters) and jargon', () => {

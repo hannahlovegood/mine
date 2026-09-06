@@ -224,7 +224,11 @@ export const copy = {
   'ext.lang.auto': { en: 'Follow the page', zh: '跟随页面' },
   'ext.goto': { en: 'Go to it on the page', zh: '查看原文位置' },
   'ext.blocks': { en: '{n} blocks read on this page', zh: '这个页面读到 {n} 个块' },
-  'ext.save': { en: 'Save', zh: '保存' },
+  'ext.plainUnavailable': { en: 'Plain language is unavailable right now; everything else applied.', zh: '平实语言暂时不可用，其余改动照常。' },
+  'ext.thisFile': { en: 'this file', zh: '这个文件' },
+  'ext.andMore': { en: ' and {n} more', zh: ' 等 {total} 项' },
+  'ext.words.shortcut': { en: 'Press ⌘ or Ctrl + Enter to transform.', zh: '按 ⌘ 或 Ctrl + Enter 即可重排。' },
+  'ext.urlChanged': { en: 'The page moved to a new address, so your edition was undone.', zh: '页面换了地址，你的版本已撤销。' },
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof copy;

@@ -20,6 +20,7 @@ export function fontFaceCss(url: (path: string) => string): string {
 export const DOCUMENT_CSS = `
 [data-mine-hidden], [data-mine-step-hidden], [data-mine-folded] { display: none !important; }
 [data-mine-mark] { box-shadow: -9px 0 0 -6px var(--mine-pencil, #2743d9) !important; }
+[data-mine-flash] { outline: 3px solid var(--mine-pencil, #2743d9) !important; outline-offset: 2px !important; }
 html[data-mine-compare] [data-mine-hidden], html[data-mine-compare] [data-mine-step-hidden], html[data-mine-compare] [data-mine-folded] { display: revert !important; }
 html[data-mine-compare] [data-mine-mark] { box-shadow: none !important; }
 html[data-mine-compare] [data-mine-injected] { display: none !important; }
@@ -34,14 +35,15 @@ html[data-mine-contrast] *:focus-visible { outline: 3px solid #2743d9 !important
 [data-mine-injected][data-mine-inline] { display: inline-block; }
 `;
 
-/** Shared shadow styles for injected widgets (stub, callout, note, terms, stepper, plain). */
+/** Shared shadow styles for injected widgets (stub, callout, note, terms, stepper, plain).
+ *  Every widget paints its own paper background so it reads on dark sites too. */
 export const WIDGET_CSS = `
 :host { ${TOKENS} all: initial; display: block; font-family: var(--font-interface); font-size: 14px; line-height: 1.45; color: var(--ink); margin: 10px 0; contain: content; }
 * { box-sizing: border-box; }
 button { font: inherit; cursor: pointer; }
 .link { background: none; border: 0; padding: 0; color: var(--pencil); text-decoration: underline; text-underline-offset: 0.18em; min-height: 32px; display: inline-flex; align-items: center; }
 .link:hover { text-decoration-thickness: 2px; }
-.link:focus-visible, .btn:focus-visible { outline: 3px solid var(--pencil); outline-offset: 2px; }
+.link:focus-visible, .btn:focus-visible { outline: 3px solid var(--pencil); outline-offset: 2px; box-shadow: 0 0 0 5px var(--paper); }
 .stub { background: var(--stub); border-radius: 2px; padding: 8px 14px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; color: var(--graphite); }
 .stub .names { flex-basis: 100%; font-size: 13px; color: var(--graphite); }
 .callout { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 10px 0; background: var(--paper); }
@@ -49,14 +51,15 @@ button { font: inherit; cursor: pointer; }
 .callout .label .moved { color: var(--pencil); font-weight: 400; }
 .callout .text { margin-top: 4px; font-family: var(--font-edition); font-size: 16px; line-height: 1.55; }
 .callout .link { margin-top: 4px; }
-.note { border-left: 2px solid var(--pencil); padding: 6px 12px; margin: 6px 0 0; color: var(--graphite); font-size: 14px; display: flex; flex-direction: column; gap: 3px; }
+.note { background: var(--paper); border-left: 2px solid var(--pencil); padding: 8px 12px; margin: 6px 0 0; color: var(--graphite); font-size: 14px; display: flex; flex-direction: column; gap: 3px; }
 .note .pencil { color: var(--pencil); }
-.terms { border-left: 2px solid var(--pencil); padding: 6px 12px; margin: 6px 0 0; font-size: 14px; }
+.terms { background: var(--paper); border-left: 2px solid var(--pencil); padding: 8px 12px; margin: 6px 0 0; font-size: 14px; }
 .terms dt { font-weight: 700; display: inline; }
 .terms dd { display: inline; margin: 0; color: var(--graphite); }
 .terms div + div { margin-top: 4px; }
-.plain { border-left: 2px solid var(--pencil); padding: 6px 12px; margin: 6px 0 0; font-family: var(--font-edition); font-size: 15px; line-height: 1.55; }
-.plain .tag, .tagline { font-family: var(--font-interface); font-size: 13px; color: var(--pencil); display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.plain { background: var(--paper); border-left: 2px solid var(--pencil); padding: 8px 12px; margin: 6px 0 0; font-family: var(--font-edition); font-size: 15px; line-height: 1.55; }
+.plain .tag { font-family: var(--font-interface); font-size: 13px; color: var(--pencil); display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.tagline { background: var(--paper); padding: 4px 8px; font-family: var(--font-interface); font-size: 13px; color: var(--pencil); display: inline-flex; gap: 8px; align-items: center; margin-bottom: 4px; }
 .tagline .sep { color: var(--rule); }
 .stepper { border-top: 1px solid var(--ink); padding: 12px 0 6px; margin: 16px 0 12px; background: var(--paper); }
 .stepper .progress { font-size: 13px; color: var(--graphite); margin: 0 0 2px; display: flex; gap: 12px; align-items: baseline; }

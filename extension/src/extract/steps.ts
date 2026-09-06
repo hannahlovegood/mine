@@ -9,7 +9,9 @@
 //   author-defined and are never split.
 // - "Nearest preceding heading inside or just before the form": the last heading before the
 //   control that is inside the form root or anywhere before the form root's start; for a
-//   control outside the form root, simply the last heading before it.
+//   control outside the form root, the last heading before it unless that heading sits inside
+//   the form root — a control never joins a step that lives inside the form (review [30]); it
+//   falls into its own chunk instead.
 // - Attestation decisions are left out of the sequence and put into the group of the nearest
 //   primary (submit) action, which is the last group; when no group exists they are chunked.
 // - Chunk titles are numbered by step position ("Part 3" is the third step).
@@ -58,6 +60,7 @@ function headingBefore(el: Element, ctx: ExtractContext): Element | null {
   }
   if (!last) return null;
   if (ctx.form && ctx.form.contains(el) && !ctx.form.contains(last) && !precedes(last, ctx.form)) return null;
+  if (ctx.form && !ctx.form.contains(el) && ctx.form.contains(last)) return null;
   return last;
 }
 

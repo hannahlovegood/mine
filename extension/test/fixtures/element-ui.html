@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>员工信息登记 - 人事管理系统</title>
+<style>
+body { margin: 0; font-family: "PingFang SC", sans-serif; font-size: 14px; }
+.el-header { display: flex; align-items: center; gap: 24px; padding: 0 24px; height: 60px; background: #409eff; color: #fff; }
+.el-menu { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; }
+.el-container { display: flex; }
+.el-aside { width: 200px; background: #f5f7fa; padding: 16px; }
+.el-main { flex: 1; padding: 24px; }
+.el-form-item { display: flex; margin-bottom: 22px; }
+.el-form-item__label { width: 100px; text-align: right; padding-right: 12px; }
+.el-form-item__content { flex: 1; }
+.el-form-item.is-required .el-form-item__label::before { content: "*"; color: #f56c6c; margin-right: 4px; }
+.el-radio__original, .el-checkbox__original { opacity: 0; outline: 0; position: absolute; margin: 0; width: 0; height: 0; z-index: -1; }
+.el-radio__inner, .el-checkbox__inner { display: inline-block; width: 14px; height: 14px; border: 1px solid #dcdfe6; border-radius: 100%; }
+.el-radio, .el-checkbox { margin-right: 24px; cursor: pointer; }
+.el-form-item__error { color: #f56c6c; font-size: 12px; line-height: 1; padding-top: 4px; }
+.el-alert { padding: 8px 16px; border-radius: 4px; background: #fdf6ec; color: #e6a23c; margin-bottom: 16px; }
+.el-button { padding: 10px 20px; border-radius: 4px; }
+.el-button--primary { background: #409eff; color: #fff; }
+.el-footer { padding: 16px 24px; color: #909399; font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="el-header">
+    <span class="logo">人事管理系统</span>
+    <ul class="el-menu el-menu--horizontal" role="menubar">
+      <li class="el-menu-item" role="menuitem"><a href="/home">首页</a></li>
+      <li class="el-menu-item" role="menuitem"><a href="/staff">员工管理</a></li>
+      <li class="el-menu-item" role="menuitem"><a href="/attendance">考勤</a></li>
+      <li class="el-menu-item" role="menuitem"><a href="/salary">薪酬</a></li>
+      <li class="el-menu-item" role="menuitem"><a href="/settings">系统设置</a></li>
+    </ul>
+  </header>
+  <div class="el-container">
+    <aside class="el-aside">
+      <ul class="el-menu el-menu-vertical">
+        <li class="el-menu-item"><a href="/staff/list">员工列表</a></li>
+        <li class="el-menu-item"><a href="/staff/new">新增员工</a></li>
+        <li class="el-menu-item"><a href="/staff/import">批量导入</a></li>
+      </ul>
+    </aside>
+    <main class="el-main">
+      <h2>员工信息登记</h2>
+      <p>请如实填写以下信息，带星号的为必填项。信息提交后由人事专员审核，审核通过后自动开通门禁与考勤账号。</p>
+      <div class="el-alert el-alert--warning is-light" role="alert">
+        <div class="el-alert__content"><span class="el-alert__title">系统将于本周五晚 22:00 至 24:00 升级维护，期间无法提交表单，请提前保存。</span></div>
+      </div>
+      <form class="el-form el-form--label-right" novalidate="novalidate">
+        <div class="el-form-item is-required">
+          <label for="name" class="el-form-item__label">姓名</label>
+          <div class="el-form-item__content">
+            <div class="el-input"><input type="text" autocomplete="off" placeholder="请输入姓名" class="el-input__inner" id="name" /></div>
+          </div>
+        </div>
+        <div class="el-form-item is-required">
+          <label class="el-form-item__label">部门</label>
+          <div class="el-form-item__content">
+            <div class="el-select">
+              <div class="el-input el-input--suffix">
+                <input type="text" readonly="readonly" autocomplete="off" placeholder="请选择部门" class="el-input__inner" />
+                <span class="el-input__suffix"><span class="el-input__suffix-inner"><i class="el-select__caret el-input__icon el-icon-arrow-up"></i></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="el-form-item is-required">
+          <label class="el-form-item__label">性别</label>
+          <div class="el-form-item__content">
+            <div role="radiogroup" class="el-radio-group">
+              <label role="radio" aria-checked="false" tabindex="-1" class="el-radio">
+                <span class="el-radio__input"><span class="el-radio__inner"></span><input type="radio" aria-hidden="true" tabindex="-1" autocomplete="off" class="el-radio__original" value="1" name="sex" /></span>
+                <span class="el-radio__label">男</span>
+              </label>
+              <label role="radio" aria-checked="false" tabindex="0" class="el-radio">
+                <span class="el-radio__input"><span class="el-radio__inner"></span><input type="radio" aria-hidden="true" tabindex="-1" autocomplete="off" class="el-radio__original" value="2" name="sex" /></span>
+                <span class="el-radio__label">女</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="el-form-item">
+          <label for="phone" class="el-form-item__label">手机号</label>
+          <div class="el-form-item__content">
+            <div class="el-input is-error"><input type="text" autocomplete="off" placeholder="请输入 11 位手机号" class="el-input__inner" id="phone" /></div>
+            <div class="el-form-item__error">手机号格式不正确</div>
+          </div>
+        </div>
+        <div class="el-form-item">
+          <label class="el-form-item__label">技能</label>
+          <div class="el-form-item__content">
+            <div role="group" aria-label="技能" class="el-checkbox-group">
+              <label class="el-checkbox">
+                <span class="el-checkbox__input"><span class="el-checkbox__inner"></span><input type="checkbox" aria-hidden="true" class="el-checkbox__original" value="java" /></span>
+                <span class="el-checkbox__label">Java 开发</span>
+              </label>
+              <label class="el-checkbox is-checked">
+                <span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span><input type="checkbox" aria-hidden="true" class="el-checkbox__original" value="pm" checked="checked" /></span>
+                <span class="el-checkbox__label">项目管理</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="el-form-item">
+          <div class="el-form-item__content">
+            <label class="el-checkbox">
+              <span class="el-checkbox__input"><span class="el-checkbox__inner"></span><input type="checkbox" aria-hidden="true" class="el-checkbox__original" value="agree" /></span>
+              <span class="el-checkbox__label">我已阅读并同意<a href="/agreement">《员工信息采集协议》</a>和<a href="/privacy">《隐私政策》</a></span>
+            </label>
+          </div>
+        </div>
+        <div class="el-form-item">
+          <div class="el-form-item__content">
+            <button type="button" class="el-button el-button--primary"><span>提交</span></button>
+            <button type="button" class="el-button el-button--default"><span>重置</span></button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+  <footer class="el-footer">© 2026 人事管理系统 · 内部使用</footer>
+</div>
+</body>
+</html>

@@ -98,9 +98,40 @@ export function parseDateIso(text: string, lang: Lang): string | null {
   }
 }
 
-/** Words that make a dated sentence a deadline (EN + ZH, from the contract). */
+/**
+ * Words that make a dated sentence a deadline (EN + ZH, from the contract, plus the review's
+ * 日前 / 前完成 / 前报送 / 前将 / 以前 / on or before). `日前` counts only right after a day number
+ * ("6月30日前"), because on its own it means "a few days ago" in news copy.
+ */
 export const DEADLINE_WORDS =
-  /\b(?:deadline|due|by|before|no later than|closes?|closing|expires?|expiry|until|must be (?:received|submitted))\b|截止|截至|不迟于|之前|前提交|到期|止(?![^\s]*痛)/i;
+  /\b(?:deadline|due|by|before|on or before|no later than|closes?|closing|expires?|expiry|until|must be (?:received|submitted))\b|截止|截至|不迟于|之前|前提交|前完成|前报送|前将|以前|到期|(?<=\d)\s*日前|止(?![^\s]*痛)/i;
+
+const MONTH_WORD_RE = new RegExp(`\\b${MONTH_WORD}`, 'i').source;
+/** A date without a year: 6月30日 · 6/30 · June 30 · 30 June (none followed by a year). */
+const YEARLESS_DATE: RegExp[] = [
+  /(?<![\d年])\d{1,2}\s*月\s*\d{1,2}\s*日/,
+  /(?<![\d/])\d{1,2}\/\d{1,2}(?![\d/])/,
+  new RegExp(`${MONTH_WORD_RE}\\s+\\d{1,2}(?:st|nd|rd|th)?\\b(?!,?\\s*\\d{4})`, 'i'),
+  new RegExp(`(?<!\\d)\\d{1,2}(?:st|nd|rd|th)?\\s+${MONTH_WORD_RE}\\b(?!,?\\s*\\d{4})`, 'i'),
+];
+
+/**
+ * True when some sentence holds a deadline word and a yearless date (6月30日, 6/30, June 30) but no
+ * parseable dated deadline: the block cannot become a `deadline` (no ISO date), yet it must stay
+ * primary text — a container class must never demote it (review [21]).
+ */
+export function findDeadlineHint(text: string, lang: Lang): boolean {
+  try {
+    for (const sentence of sentences(normaliseDigits(String(text ?? ''), lang))) {
+      if (!DEADLINE_WORDS.test(sentence)) continue;
+      if (parseDateIso(sentence, lang)) continue;
+      if (YEARLESS_DATE.some((re) => re.test(sentence))) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 const SENTENCE_BREAK = /(?<=[.!?])\s+(?=[A-Z"“(\[])|(?<=[。！？；;])/;
 

@@ -4,10 +4,17 @@
 // - Header and footer roots are also recognised by class/id tokens (header, masthead, topbar,
 //   navbar; footer, contentinfo, copyright, colophon) because the demo portal — like many real
 //   sites — has no <header>/<footer> elements. Class-based roots must hold ≤ 50 % of the page's
-//   text. A <header> inside main/article is the article's header, not a region root.
+//   text. A <header> inside main/article is the article's header, not a region root, and a
+//   page-header / entry-header / card-header / modal-header… class names content (review [45]).
+// - Sidebar roots by class (side, aside, sidebar, rail, related…) are only recognised outside the
+//   semantic main; `widget`/`widgets` count only when a semantic main exists to be outside of —
+//   on an Elementor page every element is a widget (review [1]). Semantic <aside> counts anywhere.
 // - The main root is `main`/`[role=main]`, else the single `article`, else the largest text
 //   container: descend from body into the child holding ≥ 60 % of the text, through generic
-//   containers only, never into a region root, and never past the first h1 (else h2).
+//   containers only, never into a region root, never past the first h1 (else h2), and never into
+//   a child that leaves behind a form control that follows the title (review [46]). When such
+//   controls still fall outside the chosen root (an article followed by the form), the root is
+//   widened to their common ancestor.
 // - Blocks outside every root fall back to their position: before the main root → header,
 //   after it → footer. Pages made of plain divs thus still get a top and a bottom.
 // - The site menu is the biggest nav-like element inside the header root, else the first
@@ -18,15 +25,19 @@
 //   elements whose class says utility/toolbar/skiplinks. Their wrapper-only ancestors are
 //   folded so `.portal-utility > div > ul` yields `.portal-utility` as the root.
 // - `regions` exposes one element per name: the first root in document order.
-import { foldWrappers } from './boxes.ts';
+import { foldWrappers, lca } from './boxes.ts';
 import type { ExtractContext, Region } from './context.ts';
 import { isNavLike, navItems } from './kinds.ts';
-import { attr, hasToken, isHidden, precedes, textLength } from './text.ts';
+import { attr, classString, hasToken, isCandidateControl, isHidden, precedes, textLength } from './text.ts';
 
-const HEADER_EXACT = ['header', 'masthead', 'topbar', 'navbar', 'siteheader', 'pageheader'];
+const HEADER_EXACT = ['header', 'masthead', 'topbar', 'navbar', 'siteheader'];
+/** A "header" class that names a piece of content, not the site header. */
+const CONTENT_HEADER = /(?:^|[\s_-])(?:page|card|modal|entry|post|article|section|content|panel|box|form|table|list|widget|item|block|accordion|dialog|hero|title)[-_]?(?:header|head|heading)(?:$|[\s_-])/;
 const FOOTER_EXACT = ['footer', 'contentinfo', 'copyright', 'colophon', 'sitefooter', 'pagefooter'];
-const SIDEBAR_EXACT = ['side', 'aside', 'sidebar', 'sidenav', 'rail', 'related', 'widget', 'widgets'];
-const SIDEBAR_PREFIX = ['sidebar', 'sidenav', 'related', 'widget', 'aside'];
+const SIDEBAR_EXACT = ['side', 'aside', 'sidebar', 'sidenav', 'rail', 'related'];
+const SIDEBAR_PREFIX = ['sidebar', 'sidenav', 'related', 'aside'];
+const WIDGET_EXACT = ['widget', 'widgets'];
+const WIDGET_PREFIX = ['widget'];
 const UTILITY_EXACT = ['utility', 'utilities', 'utilitynav', 'toolbar', 'skip', 'skiplink', 'skiplinks'];
 const GENERIC_CONTAINERS = new Set(['body', 'div', 'section', 'article', 'main', 'center', 'table', 'tbody', 'tr', 'td', 'form', 'span']);
 
@@ -77,7 +88,7 @@ export function findRegions(doc: Document, body: Element): RegionInfo {
       headerRoot = el;
       break;
     }
-    if (!semantic && hasToken(el, HEADER_EXACT) && smallEnough(el) && el.localName !== 'a' && el.localName !== 'img') {
+    if (!semantic && hasToken(el, HEADER_EXACT) && !CONTENT_HEADER.test(classString(el)) && smallEnough(el) && el.localName !== 'a' && el.localName !== 'img') {
       headerRoot = el;
       break;
     }
@@ -89,6 +100,7 @@ export function findRegions(doc: Document, body: Element): RegionInfo {
   for (const el of all) {
     if (!visible(el) || insideMain(el) || containsMain(el)) continue;
     if (headerRoot && (headerRoot === el || headerRoot.contains(el))) continue;
+    if (footerRoot && footerRoot.contains(el)) continue; // a .footer-widgets inside <footer> never replaces it
     const semantic = el.localName === 'footer' || attr(el, 'role') === 'contentinfo';
     if (semantic && !el.closest('article,main,[role=main]')) footerRoot = el;
     else if (!semantic && hasToken(el, FOOTER_EXACT) && smallEnough(el) && el.localName !== 'a') footerRoot = el;
@@ -102,7 +114,12 @@ export function findRegions(doc: Document, body: Element): RegionInfo {
     if (insideAny(el, [headerRoot, footerRoot].filter((r): r is Element => Boolean(r)))) continue;
     if (insideAny(el, sidebars)) continue;
     const semantic = el.localName === 'aside' || attr(el, 'role') === 'complementary';
-    if (semantic || (hasToken(el, SIDEBAR_EXACT, SIDEBAR_PREFIX) && smallEnough(el) && !['a', 'img', 'li', 'button'].includes(el.localName))) {
+    const classed =
+      !insideMain(el) &&
+      (hasToken(el, SIDEBAR_EXACT, SIDEBAR_PREFIX) || (semanticMain !== null && hasToken(el, WIDGET_EXACT, WIDGET_PREFIX))) &&
+      smallEnough(el) &&
+      !['a', 'img', 'li', 'button'].includes(el.localName);
+    if (semantic || classed) {
       if (el === headerRoot || el === footerRoot) continue;
       sidebars.push(el);
       roots.set(el, 'sidebar');
@@ -113,7 +130,14 @@ export function findRegions(doc: Document, body: Element): RegionInfo {
   const anchor =
     firstVisible(body.querySelectorAll('h1'), (h) => visible(h) && !insideAny(h, roots.keys())) ??
     firstVisible(body.querySelectorAll('h2'), (h) => visible(h) && !insideAny(h, roots.keys()));
-  const main = semanticMain ?? largestTextContainer(body, roots, anchor, visible);
+  // controls that belong to the page's task: after the title, outside header/footer/sidebar roots
+  const taskControls = all.filter((el) => isCandidateControl(el) && visible(el) && !insideAny(el, roots.keys()) && (!anchor || precedes(anchor, el)));
+  let main = semanticMain ?? largestTextContainer(body, roots, anchor, visible, taskControls);
+  const outside = taskControls.filter((c) => !main.contains(c));
+  if (outside.length > 0) {
+    const wide = lca([main, ...outside]);
+    if (wide && wide !== doc.documentElement && !roots.has(wide)) main = wide;
+  }
 
   // site menu
   const navLikes = collectNavLikes(all, visible);
@@ -189,7 +213,7 @@ function collectNavLikes(all: Element[], visible: (el: Element) => boolean): Ele
   return out;
 }
 
-function largestTextContainer(body: Element, roots: Map<Element, Region>, anchor: Element | null, visible: (el: Element) => boolean): Element {
+function largestTextContainer(body: Element, roots: Map<Element, Region>, anchor: Element | null, visible: (el: Element) => boolean, controls: Element[]): Element {
   let node = body;
   for (;;) {
     const total = textLength(node);
@@ -206,6 +230,8 @@ function largestTextContainer(body: Element, roots: Map<Element, Region>, anchor
     }
     if (!best || bestLen < total * 0.6) break;
     if (anchor && !best.contains(anchor)) break;
+    const chosen = best;
+    if (controls.some((c) => !chosen.contains(c))) break;
     node = best;
   }
   return node;

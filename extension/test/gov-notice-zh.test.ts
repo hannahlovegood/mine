@@ -52,12 +52,14 @@ describe('gov-notice-zh.html', () => {
     expect(cells.every((c) => c.importance === 'primary' && c.region === undefined)).toBe(true);
   });
 
-  it('reads the attachment list as a secondary nav in main with the three file names', () => {
-    const attachments = navsOf(page).find((n) => n.items.some((i) => i.includes('申请表')))!;
-    expect(attachments.items).toHaveLength(3);
-    expect(attachments.items[2]).toContain('无收入承诺书');
-    expect(attachments.importance).toBe('secondary');
+  it('reads the attachment list as one primary instruction block in main with the three file names', () => {
+    // review [64]: required attachments are part of the task, not navigation
+    const attachments = findBlock(page, '申请表')!;
+    expect(attachments.kind).toBe('instruction');
+    expect(attachments.importance).toBe('primary');
     expect(attachments.region).toBeUndefined();
+    expect(blockText(attachments)).toBe('1. 灵活就业人员社会保险补贴申请表.docx 2. 灵活就业登记证明样式.pdf 3. 无收入承诺书（云人社表-07）.pdf');
+    expect(navsOf(page).some((n) => n.items.some((i) => i.includes('申请表')))).toBe(false);
     expect(findBlock(page, '附件：')?.kind).toBe('text');
   });
 

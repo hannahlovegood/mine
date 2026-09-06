@@ -62,14 +62,18 @@ describe('div-soup.html', () => {
     }
   });
 
-  it('pairs the question heading with the paragraph after it as one faq block', () => {
+  it('keeps the unwrapped question heading and its answer as two secondary blocks (heading + faq), each with its own box', () => {
+    // review [10]: the h2 and the div are siblings without a wrapper of their own, so a composite box
+    // would cover only the heading and leave the answer an orphan
     const faqs = byKind(page, 'faq');
     expect(faqs).toHaveLength(1);
-    expect(faqs[0]!.text.startsWith('What should I expect? — Most sessions involve')).toBe(true);
+    expect(faqs[0]!.text.startsWith('Most sessions involve')).toBe(true);
     expect(faqs[0]!.importance).toBe('secondary');
-    expect(byKind(page, 'heading').map((h) => [h.text, h.level])).toEqual([
-      ['Volunteer sign-up', 1],
-      ['Sign up', 2],
+    expect(page.boxes.get(faqs[0]!.id)!.textContent).toContain('Most sessions involve');
+    expect(byKind(page, 'heading').map((h) => [h.text, h.level, h.importance])).toEqual([
+      ['Volunteer sign-up', 1, 'primary'],
+      ['Sign up', 2, 'primary'],
+      ['What should I expect?', 2, 'secondary'],
     ]);
   });
 

@@ -80,13 +80,18 @@ function inlineStyle(el: Element): { display: string; visibility: string; positi
   return { display: pick('display'), visibility: pick('visibility'), position: pick('position') };
 }
 
+export interface HiddenOptions {
+  /** Ignore `aria-hidden="true"` (framework checkboxes/radios hide the real input that way). */
+  ignoreAria?: boolean;
+}
+
 /** True when `el` itself must be skipped (its subtree with it). Does not look at ancestors. */
-export function isHidden(el: Element): boolean {
+export function isHidden(el: Element, opts: HiddenOptions = {}): boolean {
   try {
     const tag = el.localName;
     if (SKIP_TAGS.has(tag) || isMineUi(el)) return true;
     if (el.hasAttribute('hidden')) return true;
-    if (attr(el, 'aria-hidden').trim().toLowerCase() === 'true') return true;
+    if (!opts.ignoreAria && attr(el, 'aria-hidden').trim().toLowerCase() === 'true') return true;
     if (tag === 'input' && attr(el, 'type').toLowerCase() === 'hidden') return true;
     if (tag === 'dialog' && !el.hasAttribute('open')) return true;
     const inline = inlineStyle(el);
@@ -128,6 +133,33 @@ export function positionOf(el: Element): string {
 export function isFormControl(el: Element): boolean {
   const tag = el.localName;
   return tag === 'input' || tag === 'select' || tag === 'textarea';
+}
+
+/** Input types that are never fields or decisions (actions, hidden values, site search). */
+export const SKIP_INPUT_TYPES = new Set(['hidden', 'submit', 'button', 'reset', 'image', 'search']);
+
+/** The `type` of a control for the extractor's purposes ('text' for a typeless input, the tag for select/textarea). */
+export function controlType(el: Element): string {
+  return el.localName === 'input' ? attr(el, 'type').toLowerCase() || 'text' : el.localName;
+}
+
+/**
+ * A control the pre-pass would consider at all: input/select/textarea that is not an action, a
+ * hidden value or a search box, and does not sit in a nav or a search landmark (site chrome).
+ */
+export function isCandidateControl(el: Element): boolean {
+  if (!isFormControl(el)) return false;
+  if (SKIP_INPUT_TYPES.has(controlType(el))) return false;
+  try {
+    return !el.closest('nav,[role=navigation],[role=search]');
+  } catch {
+    return true;
+  }
+}
+
+/** True when `text` holds at least one letter or digit in any script (not only symbols). */
+export function hasWordChar(text: string): boolean {
+  return /[\p{L}\p{N}]/u.test(text);
 }
 
 export function containsControl(el: Element): boolean {

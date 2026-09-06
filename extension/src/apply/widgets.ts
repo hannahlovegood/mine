@@ -1,5 +1,9 @@
 // Injected Mine widgets: plain elements with a shadow root. Every one carries data-mine-injected
 // so undo() can remove them all, and hold-to-compare can hide them all.
+//
+// A widget never lets a click reach the site: propagation stops at the host, and when the host
+// ended up inside a <label> (the applier avoids that, this is the second guard) the label's
+// activation is cancelled so a note under a checkbox cannot toggle the checkbox.
 import { WIDGET_CSS } from './css.ts';
 
 export type Widget = HTMLElement;
@@ -12,6 +16,10 @@ function make(tag: string, inline = false): { host: Widget; root: ShadowRoot } {
   const style = document.createElement('style');
   style.textContent = WIDGET_CSS;
   root.appendChild(style);
+  host.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (host.closest('label')) e.preventDefault();
+  });
   return { host, root };
 }
 
@@ -31,24 +39,34 @@ export interface StubOptions {
   onToggle: (open: boolean) => void;
 }
 
+export interface StubHandle {
+  host: Widget;
+  /** Reflects the state (button label + aria-expanded) without firing onToggle. */
+  set(open: boolean): void;
+  isOpen(): boolean;
+}
+
 /** "n items set aside · Show" */
-export function stub(o: StubOptions): Widget {
+export function stub(o: StubOptions): StubHandle {
   const { host, root } = make('mine-stub');
   const box = el('div', 'stub');
   const label = el('span', undefined, o.label);
-  const btn = el('button', 'link', o.open ? o.hideLabel : o.showLabel);
+  const btn = el('button', 'link');
   btn.type = 'button';
-  btn.setAttribute('aria-expanded', String(o.open));
+  const set = (open: boolean) => {
+    btn.setAttribute('aria-expanded', String(open));
+    btn.textContent = open ? o.hideLabel : o.showLabel;
+  };
+  set(o.open);
   btn.addEventListener('click', () => {
     const next = btn.getAttribute('aria-expanded') !== 'true';
-    btn.setAttribute('aria-expanded', String(next));
-    btn.textContent = next ? o.hideLabel : o.showLabel;
+    set(next);
     o.onToggle(next);
   });
   box.append(label, btn);
   if (o.names) box.append(el('span', 'names', o.names));
   root.append(box);
-  return host;
+  return { host, set, isOpen: () => btn.getAttribute('aria-expanded') === 'true' };
 }
 
 export interface CalloutOptions {
@@ -66,7 +84,7 @@ export function callout(o: CalloutOptions): Widget {
   const box = el('div', 'callout');
   box.setAttribute('role', 'note');
   const label = el('p', 'label');
-  label.append(el('span', undefined, o.label), el('span', 'date', o.date), el('span', 'moved', o.moved));
+  label.append(el('span', undefined, o.label), el('span', 'sep', ' · '), el('span', 'date', o.date), el('span', 'sep', ' · '), el('span', 'moved', o.moved));
   const text = el('p', 'text', o.text);
   const btn = el('button', 'link', o.goto);
   btn.type = 'button';
@@ -134,11 +152,13 @@ export interface StepperOptions {
   choiceLabel: string;
   back: string;
   next: string;
-  onChange: (i: number) => void;
+  /** `user` is true when the change came from the stepper's own Back/Next buttons. */
+  onChange: (i: number, user: boolean) => void;
 }
 
 export interface StepperHandle {
   host: Widget;
+  /** Programmatic step change: renders and reports, never moves focus. */
   set(i: number): void;
 }
 
@@ -146,8 +166,8 @@ export interface StepperHandle {
 export function stepper(o: StepperOptions): StepperHandle {
   const { host, root } = make('mine-stepper');
   const box = el('section', 'stepper');
-  box.setAttribute('aria-label', o.progress(1, o.count));
   const progress = el('p', 'progress');
+  progress.setAttribute('aria-live', 'polite');
   const progressText = el('span');
   const choiceTag = el('span', 'choice', o.choiceLabel);
   progress.append(progressText, choiceTag);
@@ -172,26 +192,29 @@ export function stepper(o: StepperOptions): StepperHandle {
   root.append(box);
   let current = 0;
   const render = () => {
-    progressText.textContent = o.progress(current + 1, o.count);
+    const label = o.progress(current + 1, o.count);
+    box.setAttribute('aria-label', label);
+    progressText.textContent = label;
     choiceTag.style.display = o.choice[current] ? '' : 'none';
     title.textContent = o.titles[current] ?? '';
     back.disabled = current === 0;
     next.disabled = current === o.count - 1;
     dotEls.forEach((d, k) => (k === current ? d.setAttribute('data-on', '') : d.removeAttribute('data-on')));
   };
-  const set = (i: number) => {
+  const set = (i: number, user = false) => {
     current = Math.max(0, Math.min(o.count - 1, i));
     render();
-    o.onChange(current);
+    o.onChange(current, user);
   };
+  // Only a gesture on the stepper moves focus, and only to the stepper's own title.
   back.addEventListener('click', () => {
-    set(current - 1);
+    set(current - 1, true);
     title.focus();
   });
   next.addEventListener('click', () => {
-    set(current + 1);
+    set(current + 1, true);
     title.focus();
   });
   render();
-  return { host, set };
+  return { host, set: (i) => set(i, false) };
 }

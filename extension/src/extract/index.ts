@@ -9,12 +9,21 @@
 // Contract: extension/docs/EXTENSION.md §1. Decisions the contract left open are listed at the
 // top of each module; the ones that belong to the walk and the assembly are these:
 // - Composite blocks swallow their subtree: nav (link texts only — a search box or button inside
-//   a menu is not a field/action), details/summary (faq), figure/picture (image), promo boxes,
-//   floating widgets with text (notice), and an `ol` in main (instruction, "1. … 2. …").
-// - A question heading ("…?" / "…？") is paired with the paragraph after it as one faq block
-//   whose box is their shared wrapper when they have one of their own, else the heading.
+//   a menu is not a field/action; a nav-like element holding a collected control is walked
+//   instead, review [2]), details/summary (faq), figure/picture (image), promo boxes (no heading,
+//   no primary action inside — review [45]), floating widgets with text (notice — unless the text
+//   holds a dated deadline or legal prose, review [15]/[20]), an `ol` in main (instruction,
+//   "1. … 2. …") and an attachment list in main (instruction, review [64]). A tab bar yields one
+//   primary action per tab (review [47]).
+// - A question heading ("…?" / "…？") is paired with the paragraph after it as one faq block only
+//   when the two share a wrapper of their own (the box); otherwise they stay two blocks — a
+//   secondary heading and a secondary faq answer — so no box ever covers half a pair (review [10]).
+//   The anchor heading (the page title) is never paired.
 // - `label` and `legend` elements are never blocks of their own; help texts and labels used by a
-//   control are consumed (see fields.ts).
+//   control are consumed (see fields.ts), and nothing inside a consumed label but its control is
+//   walked. A collected control is visited even when aria-hidden (framework choices, review [44]).
+// - An `img` inside the form root beside a control (same cell, row or box) is an informative
+//   primary image whatever its alt (a captcha); an `img` with onclick is an action (review [17]).
 // - Heading levels: h1 → 1, h2 → 2, else 3; when main has no h1, its heading levels are ranked
 //   (lowest → 1, next → 2, rest → 3) so a page whose title is an h2 still has a level-1 heading
 //   for the engine's deadline placement. Headings outside main are `secondary`.
@@ -28,7 +37,9 @@
 //   all, the text is sniffed for CJK (title + first paragraphs) → en.
 // - `meta.title`: document.title → first h1 → first heading → "Untitled" / "无标题".
 // - Every block is validated with ContentBlockSchema and dropped on failure; ids are re-numbered
-//   so `b-n` stays dense and in document order. `regions` holds the first root per name.
+//   so `b-n` stays dense and in document order. `regions` holds the first root per name;
+//   `rootOf` maps every block to the actual root element its node sits in (main included), so an
+//   applier can group by element rather than by region name (review [53]).
 import {
   ContentBlockSchema,
   PageContentSchema,
@@ -45,15 +56,19 @@ import {
 } from '@engine/schema.ts';
 import { foldWrappers } from './boxes.ts';
 import type { ControlInfo, ExtractContext, Region } from './context.ts';
+import { findDeadline } from './dates.ts';
 import { collectControls, isHelpEl } from './fields.ts';
 import {
+  actionLabel,
   classifyText,
   complexityOf,
   floatingContainerOf,
   hasDecorativeImageClass,
+  hasPrimaryActionInside,
   headingImportance,
   imageSrc,
   isActionEl,
+  isAttachmentList,
   isBlockImage,
   isFloatingWidget,
   isHeading,
@@ -61,6 +76,7 @@ import {
   isNavLike,
   isPrimaryAction,
   isPromoContainer,
+  isTabBar,
   isTextLeaf,
   legalHits,
   navItems,
@@ -70,6 +86,9 @@ import {
 import { findRegions, hiddenDeep, regionOf } from './regions.ts';
 import { assignSteps } from './steps.ts';
 import { attr, containsControl, isCjk, isFormControl, isHidden, precedes, textLength, textOf } from './text.ts';
+
+const HEADING_SELECTOR = 'h1,h2,h3,h4,h5,h6,[role=heading]';
+const NUMBERED = /^(?:\d+\s*[.、)）:：]|[（(]\d+[)）]|附件\s*\d)/;
 
 export type { Region } from './context.ts';
 
@@ -91,6 +110,10 @@ export interface ExtractedPage {
   main: Element;
   /** The form root when fields were found (the stepper is inserted before its first box). */
   form?: Element;
+  /** block id → the region root element (or main) the block's node sits in; absent for nodes outside every root. */
+  rootOf?: Map<string, Element>;
+  /** field/decision id → its label element when one is known (what to hide along with a bare-control box). */
+  labelOf?: Map<string, Element>;
   lang: Lang;
 }
 
@@ -103,6 +126,9 @@ interface Draft {
   box: Element;
   rawLevel?: number;
   attestation?: boolean;
+  labelEl?: Element | null;
+  /** A tab of a tab bar: never folded into the form's last step. */
+  tab?: boolean;
 }
 
 export function extractPage(doc: Document, opts: ExtractOptions = {}): ExtractedPage {
@@ -186,6 +212,8 @@ function extract(doc: Document, opts: ExtractOptions): ExtractedPage {
   const blocks: ContentBlock[] = [];
   const nodes = new Map<string, Element>();
   const boxes = new Map<string, Element>();
+  const rootOf = new Map<string, Element>();
+  const labelOf = new Map<string, Element>();
   for (const d of drafts) {
     const id = `b-${blocks.length + 1}`;
     const candidate = { ...d.block, id } as ContentBlock;
@@ -194,6 +222,9 @@ function extract(doc: Document, opts: ExtractOptions): ExtractedPage {
     blocks.push(result.data as ContentBlock);
     nodes.set(id, d.node);
     boxes.set(id, d.box);
+    const root = rootElementOf(d.node, ctx);
+    if (root) rootOf.set(id, root);
+    if (d.labelEl) labelOf.set(id, d.labelEl);
   }
   const content: PageContent = { meta: { title: pageTitle(doc, body, drafts, lang), lang, stepOrder }, blocks };
   const check = PageContentSchema.safeParse(content);
@@ -203,10 +234,23 @@ function extract(doc: Document, opts: ExtractOptions): ExtractedPage {
     boxes,
     regions: regionInfo.byName,
     main: regionInfo.main,
+    rootOf,
+    labelOf,
     lang,
   };
   if (ctx.form && ctx.controls.size > 0) page.form = ctx.form;
   return page;
+}
+
+/** The nearest region root of `el` (main included), or null when it only has a position. */
+function rootElementOf(el: Element, ctx: ExtractContext): Element | null {
+  let node: Element | null = el;
+  while (node && node !== ctx.body) {
+    if (ctx.roots.has(node)) return node;
+    if (node === ctx.main) return node;
+    node = node.parentElement;
+  }
+  return ctx.main === ctx.body ? ctx.body : null;
 }
 
 function pageTitle(doc: Document, body: Element, drafts: Draft[], lang: Lang): string {
@@ -252,10 +296,19 @@ class Walker {
   walk(el: Element): void {
     if (this.full()) return;
     try {
-      if (isHidden(el)) return;
-      // a consumed element (label, help…) is never a block, but a wrapping label still holds its control
-      if (this.ctx.consumed.has(el) && !containsControl(el)) return;
+      const info = this.ctx.controls.get(el);
+      if (isHidden(el) && !info) return;
       if (this.ctx.memberOf.has(el) && this.ctx.memberOf.get(el) !== el) return;
+      // a consumed element (label, help…) is never a block; a wrapping label still holds its
+      // control, and nothing else inside it is walked (its spans are the label's text)
+      if (this.ctx.consumed.has(el) && !info) {
+        if (!containsControl(el)) return;
+        for (const [control, c] of this.ctx.controls) {
+          if (this.full()) return;
+          if (el.contains(control)) this.control(c);
+        }
+        return;
+      }
       if (this.visit(el)) return;
     } catch {
       return;
@@ -344,7 +397,7 @@ class Walker {
       };
       if (info.help) block.help = info.help;
       if (info.options) block.options = info.options;
-      this.add({ block, node: el, box: info.box });
+      this.add({ block, node: el, box: info.box, labelEl: info.labelEl });
       return;
     }
     const optional = !info.required && !info.attestation;
@@ -358,11 +411,11 @@ class Walker {
       ...this.regionField(el),
     };
     if (info.help) block.consequence = info.help;
-    this.add({ block, node: el, box: info.box, attestation: info.attestation });
+    this.add({ block, node: el, box: info.box, attestation: info.attestation, labelEl: info.labelEl });
   }
 
   private action(el: Element): void {
-    const label = actionLabel(el);
+    const label = actionLabel(el, { exclude: isHelpEl, ctx: this.ctx });
     if (!label) return;
     const primary = isPrimaryAction(el, label);
     const floating = Boolean(floatingContainerOf(el, this.ctx));
@@ -378,6 +431,11 @@ class Walker {
   }
 
   private nav(el: Element): boolean {
+    // a nav-like element that holds a collected control is walked, never swallowed
+    for (const control of this.ctx.controls.keys()) if (el.contains(control)) return false;
+    if (isTabBar(el, this.ctx)) return this.tabs(el);
+    const tag = el.localName;
+    if ((tag === 'ul' || tag === 'ol' || tag === 'menu') && this.region(el) === 'main' && isAttachmentList(el)) return this.attachments(el);
     const items = navItems(el);
     if (items.length === 0) return false;
     const block: NavBlock = { id: '', kind: 'nav', importance: 'secondary', items, ...this.regionField(el) };
@@ -385,20 +443,52 @@ class Walker {
     return true;
   }
 
+  /** A tab bar: one primary, non-submit action per tab (tabs open panes, they do not navigate away). */
+  private tabs(el: Element): boolean {
+    const links = Array.from(el.querySelectorAll('a,[role=tab]')).filter((a) => !isHidden(a) && !a.parentElement?.closest('a,[role=tab]'));
+    let added = 0;
+    for (const a of links) {
+      const label = actionLabel(a, { ctx: this.ctx });
+      if (!label) continue;
+      const block: ActionBlock = { id: '', kind: 'action', importance: 'primary', label, primary: false, ...this.regionField(a) };
+      this.add({ block, node: a, box: foldWrappers(a, this.ctx), tab: true });
+      added++;
+    }
+    return added > 0;
+  }
+
+  /** An attachment/download list in main: one primary instruction block listing the documents. */
+  private attachments(list: Element): boolean {
+    const items = Array.from(list.querySelectorAll('a')).filter((a) => !isHidden(a) && !a.parentElement?.closest('a')).map((a) => textOf(a, { max: 300 })).filter(Boolean);
+    if (items.length === 0) return false;
+    const text = items.map((t, i) => (NUMBERED.test(t) ? t : `${i + 1}. ${t}`)).join(' ').slice(0, 2000);
+    const block: TextBlock = { id: '', kind: 'instruction', importance: 'primary', text, complexity: complexityOf(text, this.ctx.lang, 0), ...this.regionField(list) };
+    this.add({ block, node: list, box: foldWrappers(list, this.ctx) });
+    return true;
+  }
+
   private heading(el: Element): void {
     const text = textOf(el);
     if (text.length < 3) return;
     const region = this.region(el);
-    if (/[?？]$/.test(text)) {
+    if (/[?？]$/.test(text) && el !== this.ctx.anchor) {
       const answer = this.answerAfter(el);
       if (answer) {
         const answerText = textOf(answer);
         this.ctx.consumed.add(answer);
         const wrapper = el.parentElement;
-        const shared = wrapper && wrapper === answer.parentElement && visibleChildren(wrapper).length === 2 && !this.ctx.roots.has(wrapper) && wrapper !== this.ctx.main ? foldWrappers(wrapper, this.ctx) : el;
-        const faqText = `${text} — ${answerText}`.slice(0, 2000);
-        const block: TextBlock = { id: '', kind: 'faq', importance: 'secondary', text: faqText, complexity: complexityOf(faqText, this.ctx.lang, legalHits(faqText)), ...this.regionField(el) };
-        this.add({ block, node: el, box: shared });
+        const shared = wrapper && wrapper === answer.parentElement && visibleChildren(wrapper).length === 2 && !this.ctx.roots.has(wrapper) && wrapper !== this.ctx.main;
+        if (shared) {
+          const faqText = `${text} — ${answerText}`.slice(0, 2000);
+          const block: TextBlock = { id: '', kind: 'faq', importance: 'secondary', text: faqText, complexity: complexityOf(faqText, this.ctx.lang, legalHits(faqText)), ...this.regionField(el) };
+          this.add({ block, node: el, box: foldWrappers(wrapper, this.ctx) });
+          return;
+        }
+        // no wrapper of their own: the question stays a (secondary) heading and the answer a faq block with its own box
+        const question: TextBlock = { id: '', kind: 'heading', importance: 'secondary', text, level: 3, complexity: complexityOf(text, this.ctx.lang, 0), ...this.regionField(el) };
+        this.add({ block: question, node: el, box: foldWrappers(el, this.ctx), rawLevel: rawHeadingLevel(el) });
+        const answerBlock: TextBlock = { id: '', kind: 'faq', importance: 'secondary', text: answerText.slice(0, 2000), complexity: complexityOf(answerText, this.ctx.lang, legalHits(answerText)), ...this.regionField(answer) };
+        this.add({ block: answerBlock, node: answer, box: foldWrappers(answer, this.ctx) });
         return;
       }
     }
@@ -448,13 +538,27 @@ class Walker {
     this.imageBlock(img, img, foldWrappers(img, this.ctx), '');
   }
 
+  /** An image inside the form root that shares its cell, row or wrapper with a control (a captcha): informative, whatever its alt. */
+  private besideControl(host: Element): boolean {
+    const form = this.ctx.form;
+    if (!form || !form.contains(host)) return false;
+    let node: Element | null = host.parentElement;
+    for (let depth = 0; node && node !== form && depth < 3; depth++) {
+      for (const control of this.ctx.controls.keys()) if (node.contains(control)) return true;
+      if (node.localName === 'tr' || node.localName === 'li') break;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
   private imageBlock(img: Element, host: Element, box: Element, caption: string): void {
     const src = imageSrc(img);
     if (!src) return;
     const alt = attr(img, 'alt').replace(/\s+/g, ' ').trim() || caption;
     const region = this.region(host);
     const floating = Boolean(floatingContainerOf(host, this.ctx));
-    const decorative = !alt || region !== 'main' || floating || hasDecorativeImageClass(img, this.ctx) || (host !== img && hasDecorativeImageClass(host, this.ctx));
+    const beside = !floating && this.besideControl(host);
+    const decorative = !beside && (!alt || region !== 'main' || floating || hasDecorativeImageClass(img, this.ctx) || (host !== img && hasDecorativeImageClass(host, this.ctx)));
     const block: ImageBlock = {
       id: '',
       kind: 'image',
@@ -471,13 +575,17 @@ class Walker {
     const text = textOf(el, { exclude: isActionEl });
     if (text.length < 20) return false;
     const full = textOf(el);
-    const block: TextBlock = { id: '', kind: 'notice', importance: 'decorative', text: full, complexity: complexityOf(full, this.ctx.lang, legalHits(full)) };
+    // a dated deadline or legal prose inside a floating box is critical content: walk it instead
+    const hits = legalHits(full);
+    if (findDeadline(full, this.ctx.lang) || (hits >= 2 && full.length >= 60)) return false;
+    const block: TextBlock = { id: '', kind: 'notice', importance: 'decorative', text: full, complexity: complexityOf(full, this.ctx.lang, hits) };
     this.add({ block, node: el, box: foldWrappers(el, this.ctx) });
     return true;
   }
 
   private promo(el: Element): boolean {
-    if (containsControl(el) || textLength(el) > PROMO_TEXT_CAP || el.querySelector('h1,h2') || el === this.ctx.main || this.ctx.roots.has(el)) return false;
+    if (containsControl(el) || textLength(el) > PROMO_TEXT_CAP || el.querySelector(HEADING_SELECTOR) || el === this.ctx.main || this.ctx.roots.has(el)) return false;
+    if (hasPrimaryActionInside(el, this.ctx)) return false;
     const text = textOf(el);
     if (text.length < 3) return false;
     const block: TextBlock = { id: '', kind: 'promo', importance: 'decorative', text, complexity: complexityOf(text, this.ctx.lang, 0), ...this.regionField(el) };
@@ -499,21 +607,6 @@ class Walker {
 
 function visibleChildren(el: Element): Element[] {
   return Array.from(el.children).filter((c) => !isHidden(c));
-}
-
-function actionLabel(el: Element): string {
-  const tag = el.localName;
-  if (tag === 'input') {
-    const type = attr(el, 'type').toLowerCase();
-    const value = attr(el, 'value').trim();
-    if (value) return value.slice(0, 200);
-    if (type === 'image') return attr(el, 'alt').trim() || attr(el, 'title').trim() || 'Submit';
-    return attr(el, 'aria-label').trim() || attr(el, 'title').trim() || (type === 'reset' ? 'Reset' : type === 'submit' ? 'Submit' : '');
-  }
-  const text = textOf(el, { exclude: isHelpEl, max: 200 });
-  if (text) return text;
-  const img = el.querySelector('img');
-  return attr(el, 'aria-label').trim() || attr(el, 'title').trim() || (img ? attr(img, 'alt').trim() : '') || attr(el, 'value').trim();
 }
 
 // --------------------------------------------------------------------------- post-passes
@@ -573,7 +666,7 @@ function finishSteps(drafts: Draft[], ctx: ExtractContext): { id: string; title:
       if (form.contains(d.node)) lastInside = i;
     });
     drafts.forEach((d, i) => {
-      if (d.block.kind !== 'action') return;
+      if (d.block.kind !== 'action' || d.tab) return;
       if (form.contains(d.node)) {
         d.block.group = last.id;
         return;
