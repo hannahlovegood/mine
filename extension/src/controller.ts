@@ -8,11 +8,18 @@ import { z } from 'zod';
 import { t } from '@app/copy.ts';
 import { summarySentence } from '@app/ui/summary.ts';
 import { extractPage, type ExtractedPage } from './extract/index.ts';
+import { interpret, type ChatCall } from '@server/interpret.ts';
+import { rewriteBlocks, type PlainKind } from '@server/plain.ts';
+import { browser } from 'wxt/browser';
 import { apply, type Applied, type ApplyHooks } from './apply/index.ts';
 
 export interface Settings {
   server: string;
   lang: 'auto' | Lang;
+  /** Bring your own key: the extension talks to the provider directly (via the background). */
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
 }
 export interface SiteMemory {
   mode: ModeId;
@@ -192,23 +199,29 @@ export class Controller {
     await this.storage.set({ wordsText: text });
     const started = performance.now();
     let result: WordsResult;
-    try {
-      const server = this.state.settings.server.replace(/\/+$/, '');
-      if (!server) throw new Error('offline');
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8500);
-      const r = await fetch(`${server}/api/interpret`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text, lang }),
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      result = { text, ...InterpretResponseSchema.parse(await r.json()) };
-    } catch {
-      const fb = fallback(text, lang);
-      result = { text, preferences: fb.preferences, reasons: fb.reasons, source: 'fallback', ms: Math.round(performance.now() - started) };
+    const direct = this.directChat();
+    if (direct) {
+      const r = await interpret(text, lang, direct);
+      result = { text, ...r };
+    } else {
+      try {
+        const server = this.state.settings.server.replace(/\/+$/, '');
+        if (!server) throw new Error('offline');
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8500);
+        const r = await fetch(`${server}/api/interpret`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text, lang }),
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        result = { text, ...InterpretResponseSchema.parse(await r.json()) };
+      } catch {
+        const fb = fallback(text, lang);
+        result = { text, preferences: fb.preferences, reasons: fb.reasons, source: 'fallback', ms: Math.round(performance.now() - started) };
+      }
     }
     this.set({ words: result });
     await this.applyPrefs(result.preferences, 'words');
@@ -320,7 +333,13 @@ export class Controller {
     let notice: string | null = null;
     if (prefs.readingLevel === 'plain' || prefs.explainTerms) {
       const server = this.state.settings.server.replace(/\/+$/, '');
-      if (!server) {
+      const direct = this.directChat();
+      if (direct) {
+        this.set({ status: t(lang, 'ext.rewriting') });
+        const merged = await this.rewriteDirect(direct, content, lang);
+        if (merged) content = merged;
+        else notice = t(lang, 'ext.plainUnavailable');
+      } else if (!server) {
         notice = t(lang, 'ext.noModel');
       } else {
         this.set({ status: t(lang, 'ext.rewriting') });
@@ -376,6 +395,53 @@ export class Controller {
   }
 
   /** Asks the Plain API for plainText/terms of the complex passages; merges them into a copy of the content. */
+  /** A chat call through the background when the person has entered their own key. */
+  private directChat(): ChatCall | null {
+    const s = this.state.settings;
+    if (!s.apiKey) return null;
+    return async (messages, signal) => {
+      const r = (await browser.runtime.sendMessage({ type: 'LLM', messages, maxTokens: messages.length > 2 ? 2400 : 400 })) as { ok: boolean; content?: string; error?: string } | undefined;
+      if (signal.aborted) throw new Error('aborted');
+      if (!r?.ok || typeof r.content !== 'string') throw new Error(r?.error ?? 'no reply');
+      return r.content;
+    };
+  }
+
+  /** Plain rewrites straight from the provider, validated by the same rules the server uses. */
+  private async rewriteDirect(chat: ChatCall, content: PageContent, lang: Lang): Promise<PageContent | null> {
+    const kindOf = (b: ContentBlock): PlainKind | null =>
+      b.kind === 'text' || b.kind === 'instruction' || b.kind === 'faq' || b.kind === 'notice' || b.kind === 'legal' || b.kind === 'deadline' ? b.kind : null;
+    const candidates = content.blocks.filter((b) => {
+      const k = kindOf(b);
+      if (!k) return false;
+      const text = 'text' in b ? b.text : '';
+      const complex = 'complexity' in b ? b.complexity !== 'simple' : true;
+      return complex && text.length >= 60 && text.length <= 1500;
+    });
+    if (candidates.length === 0) return content;
+    const rewrites = new Map<string, { plainText: string; terms?: { term: string; plain: string }[] }>();
+    for (let i = 0; i < Math.min(candidates.length, 24); i += 12) {
+      const batch = candidates.slice(i, i + 12).map((b) => ({ id: b.id, text: 'text' in b ? b.text : '', kind: kindOf(b)! }));
+      try {
+        const r = await rewriteBlocks(batch, lang, chat);
+        for (const rw of r.rewrites) rewrites.set(rw.id, { plainText: rw.plainText, terms: rw.terms });
+      } catch {
+        /* a failed batch leaves those passages as written */
+      }
+    }
+    if (rewrites.size === 0) return null;
+    return {
+      ...content,
+      blocks: content.blocks.map((b) => {
+        const rw = rewrites.get(b.id);
+        if (!rw) return b;
+        if (b.kind === 'deadline') return { ...b, plainText: rw.plainText };
+        if ('complexity' in b) return { ...b, plainText: rw.plainText, terms: rw.terms?.length ? rw.terms : b.terms };
+        return b;
+      }),
+    };
+  }
+
   private async fetchPlain(server: string, content: PageContent, lang: Lang): Promise<PageContent | null> {
     const kindOf = (b: ContentBlock): string | null => {
       if (b.kind === 'text' || b.kind === 'instruction' || b.kind === 'faq' || b.kind === 'notice' || b.kind === 'legal' || b.kind === 'deadline') return b.kind;

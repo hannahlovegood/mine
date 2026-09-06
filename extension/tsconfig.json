@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "paths": { "@engine/*": ["../src/engine/*"], "@app/*": ["../src/*"] }
+    "paths": { "@engine/*": ["../src/engine/*"], "@app/*": ["../src/*"], "@server/*": ["../server/*"] }
   },
-  "include": [".wxt/wxt.d.ts", "entrypoints", "src", "test", "../src/engine", "../src/copy.ts", "../src/ui/summary.ts", "../src/ui/blockNames.ts"]
+  "include": [".wxt/wxt.d.ts", "entrypoints", "src", "test", "../src/engine", "../src/copy.ts", "../src/ui/summary.ts", "../src/ui/blockNames.ts", "../server"]
 }

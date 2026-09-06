@@ -334,7 +334,7 @@ function SettingsSheet({ s, send, close }: { s: Snapshot; send: (c: PanelCommand
   const first = useRef<HTMLInputElement>(null);
   useEffect(() => first.current?.focus(), []);
   const done = () => {
-    send({ type: 'SAVE_SETTINGS', settings: { ...draft, server: draft.server.trim() } });
+    send({ type: 'SAVE_SETTINGS', settings: { ...draft, server: draft.server.trim(), apiKey: (draft.apiKey ?? '').trim(), baseUrl: (draft.baseUrl ?? '').trim(), model: (draft.model ?? '').trim() } });
     close();
   };
   return (
@@ -342,9 +342,9 @@ function SettingsSheet({ s, send, close }: { s: Snapshot; send: (c: PanelCommand
       <div>
         <h2 id="settings-title">{t(lang, 'ext.settings')}</h2>
         <label>
-          {t(lang, 'ext.server')}
-          <input ref={first} type="text" value={draft.server} placeholder="https://…" onChange={(e) => setDraft({ ...draft, server: e.target.value })} />
-          <span>{t(lang, 'ext.server.hint')}</span>
+          {t(lang, 'ext.apiKey')}
+          <input ref={first} type="password" autoComplete="off" value={draft.apiKey ?? ''} placeholder="sk-…" onChange={(e) => setDraft({ ...draft, apiKey: e.target.value })} />
+          <span>{t(lang, 'ext.apiKey.hint')}</span>
         </label>
         <label>
           {t(lang, 'ext.lang')}
@@ -354,6 +354,22 @@ function SettingsSheet({ s, send, close }: { s: Snapshot; send: (c: PanelCommand
             <option value="zh">中文</option>
           </select>
         </label>
+        <details>
+          <summary>{t(lang, 'ext.advanced')}</summary>
+          <label>
+            {t(lang, 'ext.baseUrl')}
+            <input type="text" value={draft.baseUrl ?? ''} placeholder="https://api.deepseek.com" onChange={(e) => setDraft({ ...draft, baseUrl: e.target.value })} />
+          </label>
+          <label>
+            {t(lang, 'ext.model')}
+            <input type="text" value={draft.model ?? ''} placeholder="deepseek-chat" onChange={(e) => setDraft({ ...draft, model: e.target.value })} />
+          </label>
+          <label>
+            {t(lang, 'ext.server.alt')}
+            <input type="text" value={draft.server} placeholder="https://…" onChange={(e) => setDraft({ ...draft, server: e.target.value })} />
+            <span>{t(lang, 'ext.server.hint')}</span>
+          </label>
+        </details>
         <button type="button" className="done" onClick={done}>
           {t(lang, 'ext.settings.done')}
         </button>

@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   vite: () => ({
-    resolve: { alias: { '@engine': resolve(__dirname, '../src/engine'), '@app': resolve(__dirname, '../src') } },
+    resolve: { alias: { '@engine': resolve(__dirname, '../src/engine'), '@app': resolve(__dirname, '../src'), '@server': resolve(__dirname, '../server') } },
   }),
   webExt: { disabled: process.env.WXT_NO_OPEN === '1' },
 });

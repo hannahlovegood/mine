@@ -102,3 +102,7 @@ textarea { width: 100%; min-height: 96px; padding: 10px 12px; border: 1px solid 
 .sheet .done { align-self: flex-end; min-height: var(--target); padding: 0 20px; border: 1px solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--paper); font-weight: 700; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .primary, .tile { transition: none; } }
+
+.sheet details { border-top: 1px solid var(--rule); padding-top: 10px; }
+.sheet summary { cursor: pointer; font-size: 13px; color: var(--graphite); min-height: 32px; display: flex; align-items: center; }
+.sheet details label { margin-top: 10px; }
