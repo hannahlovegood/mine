@@ -59,7 +59,7 @@ describe('phrase groups, Chinese', () => {
 });
 
 describe('every phrase in the table triggers its group', () => {
-  it('has the nine groups of §7 in table order', () => {
+  it('has the nine groups of §7 in table order, plus the translated edition', () => {
     expect(PHRASE_GROUPS.map((g) => g.key)).toEqual([
       'quiet',
       'steps',
@@ -69,6 +69,7 @@ describe('every phrase in the table triggers its group', () => {
       'contrast',
       'mediaOn',
       'mediaOff',
+      'translate',
       'decisions',
     ]);
   });
@@ -81,7 +82,7 @@ describe('every phrase in the table triggers its group', () => {
           // The group's own settings must be applied (a phrase may legitimately hit a
           // second group too, e.g. 看不清楚 also contains 看不清).
           const expected: MinePreferences = { ...DEFAULT_PREFERENCES };
-          group.apply(expected, false);
+          group.apply(expected, false, (lang === 'en' ? `i want ${phrase} here.` : `我想要${phrase}。`).toLowerCase(), lang);
           for (const k of Object.keys(expected) as (keyof MinePreferences)[]) {
             if (expected[k] !== DEFAULT_PREFERENCES[k])
               expect(r.preferences[k], `${phrase} · ${k}`).toBe(expected[k]);

@@ -33,6 +33,7 @@ export type ChangeType =
   | 'collapsed'
   | 'moved'
   | 'rewritten'
+  | 'translated'
   | 'explained'
   | 'enlarged'
   | 'stepped'
@@ -51,6 +52,7 @@ export interface Summary {
   collapsed: number;
   moved: number;
   rewritten: number;
+  translated: number;
   explained: number;
   enlarged: number;
   steps: number;

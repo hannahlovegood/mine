@@ -117,7 +117,7 @@ function Count({ n }: { n: number }) {
 
 /** One row per kind of change: "Set aside · 17 blocks", not seven rows that all say "Set aside". */
 function groupChanges(changes: Snapshot['changes'], lang: Lang) {
-  const order = ['hidden', 'collapsed', 'moved', 'rewritten', 'explained', 'enlarged', 'surfaced', 'stepped'] as const;
+  const order = ['hidden', 'collapsed', 'moved', 'rewritten', 'translated', 'explained', 'enlarged', 'surfaced', 'stepped'] as const;
   const groups = new Map<string, { type: Snapshot['changes'][number]['type']; ids: string[]; count: number; reasons: string[]; names: string[]; restorable: boolean; restored: boolean }>();
   for (const ch of changes) {
     const g = groups.get(ch.type) ?? { type: ch.type, ids: [], count: 0, reasons: [], names: [], restorable: ch.restorable, restored: true };
@@ -161,7 +161,7 @@ function Opening({ s, send, busy }: { s: Snapshot; send: (c: PanelCommand) => vo
       <div>
         <p className="or">{t(lang, 'ext.open.or')}</p>
         <div className="tiles">
-          {(['focus', 'plain', 'large', 'words'] as ModeId[]).map((id) => (
+          {(['focus', 'plain', 'large', 'translate', 'words'] as ModeId[]).map((id) => (
             <button key={id} type="button" className="tile" onClick={() => !busy && send({ type: 'SELECT_MODE', mode: id })}>
               <b>{t(lang, `modes.${id}` as CopyKey)}</b>
               <span>{t(lang, `modes.${id}.desc` as CopyKey)}</span>
@@ -239,7 +239,7 @@ function Edition({ s, send }: { s: Snapshot; send: (c: PanelCommand) => void }) 
     <>
       <main className="edition">
         <div className="pills" role="group" aria-label={t(lang, 'lab.modes')}>
-          {([...PRESET_IDS.filter((p) => p !== 'default'), 'words'] as (PresetId | 'words')[]).map((id) => (
+          {([...PRESET_IDS.filter((p) => p !== 'default'), 'translate', 'words'] as (PresetId | 'translate' | 'words')[]).map((id) => (
             <button key={id} type="button" className="pill" aria-pressed={s.mode === id} aria-disabled={busy} onClick={() => !busy && send({ type: 'SELECT_MODE', mode: id })}>
               {t(lang, `modes.${id}` as CopyKey)}
             </button>
@@ -352,6 +352,19 @@ function SettingsSheet({ s, send, close }: { s: Snapshot; send: (c: PanelCommand
             <option value="auto">{t(lang, 'ext.lang.auto')}</option>
             <option value="en">English</option>
             <option value="zh">中文</option>
+          </select>
+        </label>
+        <label>
+          {t(lang, 'ext.translateTo')}
+          <select value={draft.translateTo ?? 'auto'} onChange={(e) => setDraft({ ...draft, translateTo: e.target.value })}>
+            <option value="auto">{t(lang, 'ext.lang.auto')}</option>
+            <option value="zh">中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
           </select>
         </label>
         <details>

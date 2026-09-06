@@ -19,7 +19,15 @@ const { extname, join } = require('node:path');
     const user = j.messages[j.messages.length - 1].content;
     let content;
     if (/rewrites/i.test(j.messages[0].content) || user.includes('"blocks"')) {
-      const blocks = JSON.parse(user.slice(user.indexOf('{'))).blocks ?? [];
+      const req = JSON.parse(user.slice(user.indexOf('{')));
+      const blocks = req.blocks ?? [];
+      if (req.translateTo) {
+        calls[calls.length - 1].translateTo = req.translateTo;
+        content = JSON.stringify({ rewrites: blocks.map((b) => ({ id: b.id, plainText: `译文：${b.text}`, terms: [] })) });
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ choices: [{ message: { content } }] }));
+        return;
+      }
       // keep every digit and stay within the length window, or the validator drops the block
       content = JSON.stringify({ rewrites: blocks.map((b) => ({ id: b.id, plainText: `In plain words. ${b.text}`, terms: [] })) });
     } else {
@@ -54,6 +62,17 @@ const { extname, join } = require('node:path');
   const summary = await panel.locator('.summary').innerText().catch(() => '');
   pass &= ok('summary mentions plain words', /plain words/.test(summary), summary);
   await panel.screenshot({ path: join(ROOT, 'docs', 'shots', 'extension', 'panel-model-en.png'), fullPage: true });
+  // Translated edition via the fake model
+  await panel.locator('.pill').filter({ hasText: 'Translated' }).click(); await sleep(3500);
+  pass &= ok('provider was asked to translate into en', calls.some((c) => c.translateTo === 'en'), JSON.stringify(calls.map((c) => c.translateTo)));
+  const translatedOnPage = await page.evaluate(() => [...document.querySelectorAll('mine-tag')].map((t) => t.shadowRoot?.textContent ?? '').filter((x) => /Translation/.test(x)).length);
+  pass &= ok('translation tags on the page', translatedOnPage > 0, `${translatedOnPage}`);
+  const tsum = await panel.locator('.summary').innerText().catch(() => '');
+  pass &= ok('summary counts translated passages', /translated/.test(tsum), tsum);
+  const fieldAside = await page.evaluate(() => [...document.querySelectorAll('mine-plain')].map((t) => t.shadowRoot?.textContent ?? '').filter((x) => /译文：/.test(x)).length);
+  pass &= ok('field labels and decisions translated beside', fieldAside > 0, `${fieldAside}`);
+  await panel.screenshot({ path: join(ROOT, 'docs', 'shots', 'extension', 'panel-translate-en.png'), fullPage: true });
+  await page.screenshot({ path: join(ROOT, 'docs', 'shots', 'extension', 'translate-en.png') });
   await ctx.close(); llm.close(); fix.close();
   console.log(pass ? '\nmodel path OK' : '\nmodel path FAILED'); process.exit(pass ? 0 : 1);
 })().catch((e) => { console.error(e); process.exit(1); });

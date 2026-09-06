@@ -1,7 +1,7 @@
 import type { MinePreferences } from './schema.ts';
 
 export type PresetId = 'default' | 'focus' | 'plain' | 'large';
-export type ModeId = PresetId | 'words';
+export type ModeId = PresetId | 'words' | 'translate';
 
 export const DEFAULT_PREFERENCES: MinePreferences = Object.freeze({
   readingLevel: 'original',
@@ -58,6 +58,11 @@ export const PRESETS: Record<PresetId, MinePreferences> = {
 
 export const PRESET_IDS: PresetId[] = ['default', 'focus', 'plain', 'large'];
 export const MODE_IDS: ModeId[] = ['default', 'focus', 'plain', 'large', 'words'];
+
+/** The translated edition: Default plus a target language, with choices surfaced (a stranger's form deserves it). */
+export function translatePreset(target: string): MinePreferences {
+  return { ...DEFAULT_PREFERENCES, translateTo: target, surfaceDecisions: true };
+}
 
 export function isDefault(p: MinePreferences): boolean {
   return (Object.keys(DEFAULT_PREFERENCES) as (keyof MinePreferences)[]).every(

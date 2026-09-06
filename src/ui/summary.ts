@@ -14,6 +14,7 @@ export function summarySentence(tr: Transformation, lang: Lang): string {
   if (s.collapsed) frags.push(tn(lang, 'colophon.frag.collapsed', s.collapsed));
   if (s.moved) frags.push(tn(lang, 'colophon.frag.moved', s.moved));
   if (s.rewritten) frags.push(tn(lang, 'colophon.frag.rewritten', s.rewritten));
+  if (s.translated) frags.push(tn(lang, 'colophon.frag.translated', s.translated));
   if (s.explained) frags.push(tn(lang, 'colophon.frag.explained', s.explained));
   if (s.enlarged) frags.push(tn(lang, 'colophon.frag.enlarged', s.enlarged));
   if (s.steps) frags.push(t(lang, 'colophon.frag.steps', { fields: fieldsInSteps(tr), steps: s.steps }));

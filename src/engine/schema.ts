@@ -164,6 +164,8 @@ export interface MinePreferences {
   taskMode: 'all' | 'one-at-a-time';
   explainTerms: boolean;
   surfaceDecisions: boolean;
+  /** Target language of a translated edition (BCP 47 primary tag, e.g. 'zh', 'en'); absent = no translation. Added 2026-09-06, see DECISIONS.md. */
+  translateTo?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -294,6 +296,7 @@ export const MinePreferencesSchema = z.object({
   taskMode: z.enum(['all', 'one-at-a-time']),
   explainTerms: z.boolean(),
   surfaceDecisions: z.boolean(),
+  translateTo: z.string().regex(/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/).optional(),
 });
 
 /** What /api/interpret returns and what the client accepts. */

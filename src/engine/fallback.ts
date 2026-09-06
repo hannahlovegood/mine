@@ -7,6 +7,7 @@ import type { Lang, MinePreferences } from './schema.ts';
 import { fallbackNoMatch, fallbackReason, type FallbackEffect } from './reasons.ts';
 
 export type GroupKey =
+  | 'translate'
   | 'quiet'
   | 'steps'
   | 'terms'
@@ -21,8 +22,8 @@ export interface PhraseGroup {
   key: GroupKey;
   en: readonly string[];
   zh: readonly string[];
-  /** Applies the group's settings. `intensified` matters only for `larger`. */
-  apply(p: MinePreferences, intensified: boolean): void;
+  /** Applies the group's settings. `intensified` matters only for `larger`; `text` (lowercased) only for `translate`. */
+  apply(p: MinePreferences, intensified: boolean, text: string, lang: Lang): void;
 }
 
 /** The §7 table, in table order. English phrases match at word starts; Chinese phrases anywhere. */
@@ -98,6 +99,14 @@ export const PHRASE_GROUPS: readonly PhraseGroup[] = [
     },
   },
   {
+    key: 'translate',
+    en: ['translate', 'translation', 'in english', 'into english', 'in chinese', 'into chinese', 'in japanese', 'into japanese'],
+    zh: ['翻译', '翻成', '译成', '中文版', '英文版', '看中文', '看英文', '看不懂英文'],
+    apply: (p, _i, text, lang) => {
+      p.translateTo = targetIn(text, lang);
+    },
+  },
+  {
     key: 'decisions',
     en: ['agreeing to', 'my choices', 'consent', 'what am i signing'],
     zh: ['同意了什么', '选择', '授权', '签了什么'],
@@ -107,11 +116,35 @@ export const PHRASE_GROUPS: readonly PhraseGroup[] = [
   },
 ];
 
+/** The language a translation request names; the person's own language when it names none. */
+const LANG_WORDS: [RegExp, string][] = [
+  [/chinese|中文|汉语|华文/, 'zh'],
+  [/english|英文|英语/, 'en'],
+  [/japanese|日文|日语/, 'ja'],
+  [/korean|韩文|韩语/, 'ko'],
+  [/spanish|西班牙/, 'es'],
+  [/french|法文|法语/, 'fr'],
+  [/german|德文|德语/, 'de'],
+];
+function codeOf(name: string): string | undefined {
+  return LANG_WORDS.find(([re]) => re.test(name))?.[1];
+}
+function targetIn(text: string, lang: Lang): string {
+  // "翻成中文" / "into English": the language after the verb is the target.
+  const explicit = /(?:翻成|译成|翻译成|翻译为|翻译到|into|to|in)\s*(chinese|english|japanese|korean|spanish|french|german|中文|汉语|华文|英文|英语|日文|日语|韩文|韩语|西班牙文|西班牙语|法文|法语|德文|德语)/.exec(text);
+  if (explicit?.[1]) return codeOf(explicit[1]) ?? lang;
+  // "看不懂英文" / "can't read the English": that names the source; the target is the person's own language.
+  if (/看不懂|不懂|读不懂|can't read|cannot read|don't understand/.test(text)) return lang;
+  for (const [re, code] of LANG_WORDS) if (re.test(text)) return code;
+  return /[\u4e00-\u9fff]/.test(text) ? 'zh' : lang;
+}
+
 /** "much" / 很 / 非常 / 特别 in the same clause as a bigger-text phrase → fontScale 1.6. */
 const INTENSIFIERS = ['much', '很', '非常', '特别'];
 const CLAUSE_BREAK = /[.!?;:,\n，。！？；：、]/;
 /** When more than five groups match, keep the most impactful (then restore table order). */
 const PRIORITY: readonly GroupKey[] = [
+  'translate',
   'quiet',
   'steps',
   'plain',
@@ -143,6 +176,8 @@ export function fallback(text: string, lang: Lang): FallbackResult {
     group.apply(
       preferences,
       INTENSIFIERS.some((w) => clause.includes(w)),
+      lowered,
+      lang,
     );
     matched.push({ key: group.key, quote: quoteAt(text, lowered, hit.at, hit.phrase) });
   }

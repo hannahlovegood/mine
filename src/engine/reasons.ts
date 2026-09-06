@@ -63,6 +63,22 @@ export const reasons = {
     return 'Rewritten in plain words. The original is kept one tap away.';
   },
 
+  /** Rule 5 (translated edition) — a passage replaced by its translation. */
+  translated(lang: Lang, target: string): string {
+    if (lang === 'zh') return `译成${langName(target, lang)}，原文保留，随时可看。`;
+    return `Translated into ${langName(target, lang)}. The original is kept one tap away.`;
+  },
+  /** Rule 5 (translated edition) — a field's label and help shown translated beside the field. */
+  fieldTranslated(lang: Lang, target: string): string {
+    if (lang === 'zh') return `填写项的${langName(target, lang)}说明附在旁边，表单本身不变。`;
+    return `${langName(target, lang)} for the field shown beside it; the form itself is unchanged.`;
+  },
+  /** Rule 5 (translated edition) — legal text and decisions are never replaced; the translation sits beside. */
+  besideTranslated(lang: Lang, target: string): string {
+    if (lang === 'zh') return `原文保持不变，旁边附上${langName(target, lang)}译文。`;
+    return `Left as written; a ${langName(target, lang)} translation is shown beside it.`;
+  },
+
   /** Rule 5 — a field's help text replaced by its plain version. */
   helpRewritten(lang: Lang): string {
     if (lang === 'zh') return '说明文字改写为平实语言，原文保留。';
@@ -123,6 +139,20 @@ export const reasons = {
 };
 
 /** Title of a choice step (copy step.choice). */
+const LANG_NAMES: Record<string, Pair> = {
+  zh: { en: 'Chinese', zh: '中文' },
+  en: { en: 'English', zh: '英文' },
+  ja: { en: 'Japanese', zh: '日文' },
+  ko: { en: 'Korean', zh: '韩文' },
+  es: { en: 'Spanish', zh: '西班牙文' },
+  fr: { en: 'French', zh: '法文' },
+  de: { en: 'German', zh: '德文' },
+};
+/** Human name of a target language, in the UI language. Unknown codes are shown as given. */
+export function langName(code: string, lang: Lang): string {
+  return LANG_NAMES[code.toLowerCase().split('-')[0] ?? '']?.[lang] ?? code;
+}
+
 export function choiceStepTitle(lang: Lang): string {
   return lang === 'zh' ? '一个选择' : 'A choice';
 }
@@ -132,6 +162,7 @@ export function choiceStepTitle(lang: Lang): string {
 // ---------------------------------------------------------------------------
 
 export type FallbackEffect =
+  | 'translate'
   | 'quiet'
   | 'quietKeepImages'
   | 'steps'
@@ -159,6 +190,7 @@ const EFFECTS: Record<FallbackEffect, Pair> = {
   mediaOn: { en: 'images kept', zh: '保留图片' },
   mediaOff: { en: 'images set aside', zh: '收起图片' },
   decisions: { en: 'choices brought forward', zh: '选项摆到台前' },
+  translate: { en: 'passages translated, original one tap away', zh: '段落翻译，原文随时可看' },
 };
 
 /** `"<matched phrase>" → <effect>` in the given language. */

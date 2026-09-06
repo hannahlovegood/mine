@@ -2,7 +2,7 @@
 // Pure React state would not survive the panel closing, so this is a tiny external store.
 import { transform, type Transformation } from '@engine/transform.ts';
 import { fallback } from '@engine/fallback.ts';
-import { DEFAULT_PREFERENCES, PRESETS, isDefault, type ModeId, type PresetId } from '@engine/presets.ts';
+import { DEFAULT_PREFERENCES, PRESETS, isDefault, translatePreset, type ModeId, type PresetId } from '@engine/presets.ts';
 import { InterpretResponseSchema, type ContentBlock, type Lang, type MinePreferences, type PageContent } from '@engine/schema.ts';
 import { z } from 'zod';
 import { t } from '@app/copy.ts';
@@ -20,6 +20,8 @@ export interface Settings {
   apiKey?: string;
   baseUrl?: string;
   model?: string;
+  /** Target of the translated edition; 'auto' = the panel language. */
+  translateTo?: 'auto' | string;
 }
 export interface SiteMemory {
   mode: ModeId;
@@ -189,6 +191,10 @@ export class Controller {
       await this.reset();
       return;
     }
+    if (mode === 'translate') {
+      await this.applyPrefs(translatePreset(this.translateTarget()), 'translate');
+      return;
+    }
     await this.applyPrefs(PRESETS[mode as PresetId], mode);
   }
 
@@ -331,16 +337,16 @@ export class Controller {
     }
     let content: PageContent = page.content;
     let notice: string | null = null;
-    if (prefs.readingLevel === 'plain' || prefs.explainTerms) {
+    if (prefs.readingLevel === 'plain' || prefs.explainTerms || prefs.translateTo) {
       const server = this.state.settings.server.replace(/\/+$/, '');
       const direct = this.directChat();
       if (direct) {
         this.set({ status: t(lang, 'ext.rewriting') });
-        const merged = await this.rewriteDirect(direct, content, lang);
+        const merged = await this.rewriteDirect(direct, content, lang, prefs.translateTo);
         if (merged) content = merged;
         else notice = t(lang, 'ext.plainUnavailable');
       } else if (!server) {
-        notice = t(lang, 'ext.noModel');
+        notice = prefs.translateTo ? t(lang, 'ext.noModel.translate') : t(lang, 'ext.noModel');
       } else {
         this.set({ status: t(lang, 'ext.rewriting') });
         const merged = await this.fetchPlain(server, content, lang);
@@ -395,6 +401,12 @@ export class Controller {
   }
 
   /** Asks the Plain API for plainText/terms of the complex passages; merges them into a copy of the content. */
+  /** The translated edition's target: the setting, else the panel language. */
+  translateTarget(): string {
+    const t = this.state.settings.translateTo;
+    return t && t !== 'auto' ? t : this.state.lang;
+  }
+
   /** A chat call through the background when the person has entered their own key. */
   private directChat(): ChatCall | null {
     const s = this.state.settings;
@@ -408,22 +420,29 @@ export class Controller {
   }
 
   /** Plain rewrites straight from the provider, validated by the same rules the server uses. */
-  private async rewriteDirect(chat: ChatCall, content: PageContent, lang: Lang): Promise<PageContent | null> {
+  private async rewriteDirect(chat: ChatCall, content: PageContent, lang: Lang, translateTo?: string): Promise<PageContent | null> {
     const kindOf = (b: ContentBlock): PlainKind | null =>
       b.kind === 'text' || b.kind === 'instruction' || b.kind === 'faq' || b.kind === 'notice' || b.kind === 'legal' || b.kind === 'deadline' ? b.kind : null;
+    // Translating: every passage, plus each field's label + help and each decision's label (shown beside).
+    const textOf = (b: ContentBlock): string =>
+      b.kind === 'field' ? [b.label, b.help].filter(Boolean).join(' — ') : b.kind === 'decision' ? b.label : 'text' in b ? b.text : '';
+    const kindFor = (b: ContentBlock): PlainKind | null =>
+      translateTo ? (b.kind === 'field' ? 'field-help' : b.kind === 'decision' ? 'decision-label' : kindOf(b)) : kindOf(b);
     const candidates = content.blocks.filter((b) => {
-      const k = kindOf(b);
+      const k = kindFor(b);
       if (!k) return false;
-      const text = 'text' in b ? b.text : '';
+      const text = textOf(b);
+      if (translateTo) return text.length >= 2 && text.length <= 1500;
       const complex = 'complexity' in b ? b.complexity !== 'simple' : true;
       return complex && text.length >= 60 && text.length <= 1500;
     });
     if (candidates.length === 0) return content;
     const rewrites = new Map<string, { plainText: string; terms?: { term: string; plain: string }[] }>();
-    for (let i = 0; i < Math.min(candidates.length, 24); i += 12) {
-      const batch = candidates.slice(i, i + 12).map((b) => ({ id: b.id, text: 'text' in b ? b.text : '', kind: kindOf(b)! }));
+    const cap = translateTo ? 48 : 24;
+    for (let i = 0; i < Math.min(candidates.length, cap); i += 12) {
+      const batch = candidates.slice(i, i + 12).map((b) => ({ id: b.id, text: textOf(b), kind: kindFor(b)! }));
       try {
-        const r = await rewriteBlocks(batch, lang, chat);
+        const r = await rewriteBlocks(batch, lang, chat, undefined, translateTo ? { translateTo } : {});
         for (const rw of r.rewrites) rewrites.set(rw.id, { plainText: rw.plainText, terms: rw.terms });
       } catch {
         /* a failed batch leaves those passages as written */
@@ -436,6 +455,8 @@ export class Controller {
         const rw = rewrites.get(b.id);
         if (!rw) return b;
         if (b.kind === 'deadline') return { ...b, plainText: rw.plainText };
+        if (b.kind === 'field') return { ...b, plainHelp: rw.plainText };
+        if (b.kind === 'decision') return { ...b, plainLabel: rw.plainText };
         if ('complexity' in b) return { ...b, plainText: rw.plainText, terms: rw.terms?.length ? rw.terms : b.terms };
         return b;
       }),

@@ -138,6 +138,7 @@ export function apply(page: ExtractedPage, tr: Transformation, prefs: { fontScal
   const blocks = page.content.blocks;
   const blockById = new Map<string, ContentBlock>(blocks.map((b) => [b.id, b]));
   const indexOf = new Map<string, number>(blocks.map((b, i) => [b.id, i]));
+  const translatedIds = new Set(tr.changes.filter((c) => c.type === 'translated').flatMap((c) => c.blockIds));
   const byId = new Map<string, ViewBlock>();
   for (const b of tr.view) byId.set(b.id, b);
   const steps = tr.steps ?? [];
@@ -436,7 +437,7 @@ export function apply(page: ExtractedPage, tr: Transformation, prefs: { fontScal
       origSpan.append(...kids); // the live nodes move; nothing is serialised
       el.append(plainSpan, origSpan);
       swaps.push({ el, plainSpan, origSpan });
-      const tag = tagline(t(lang, 'rewritten.tag'), t(lang, 'rewritten.show'), t(lang, 'rewritten.hide'), (show) => {
+      const tag = tagline(t(lang, translatedIds.has(b.id) ? 'translated.tag' : 'rewritten.tag'), t(lang, 'rewritten.show'), t(lang, 'rewritten.hide'), (show) => {
         origSpan.style.display = show ? 'block' : '';
         origSpan.style.marginTop = show ? '6px' : '';
         origSpan.style.color = show ? '#55534f' : '';

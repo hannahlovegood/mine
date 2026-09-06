@@ -204,7 +204,9 @@ function moveDeadlines(view: ViewBlock[], ctx: Ctx): ViewBlock[] {
 // ---------------------------------------------------------------------------
 
 function applyReadingLevel(view: ViewBlock[], ctx: Ctx): ViewBlock[] {
-  if (ctx.prefs.readingLevel !== 'plain') return view;
+  // A translated edition reuses the plain slots (plainText / plainHelp / plainLabel hold the translation)
+  // and is recorded as 'translated' rather than 'rewritten'; the same digit invariant applies.
+  if (!ctx.prefs.translateTo && ctx.prefs.readingLevel !== 'plain') return view;
   return view.map((b) => rewrite(b, ctx));
 }
 
@@ -214,10 +216,18 @@ const isFolded = (b: ViewBlock): boolean => b.stubFor !== undefined || b.state =
 function rewrite(b: ViewBlock, ctx: Ctx): ViewBlock {
   if (isFolded(b)) return b;
   const { lang, rec } = ctx;
+  const target = ctx.prefs.translateTo;
+  const type = target ? 'translated' : 'rewritten';
+  const why = {
+    text: target ? reasons.translated(lang, target) : reasons.rewritten(lang),
+    help: target ? reasons.fieldTranslated(lang, target) : reasons.helpRewritten(lang),
+    legal: target ? reasons.besideTranslated(lang, target) : reasons.legalAnnotated(lang),
+    decision: target ? reasons.besideTranslated(lang, target) : reasons.decisionAnnotated(lang),
+  };
   switch (b.kind) {
     case 'legal':
       if (!b.plainText) return b;
-      rec.record('rewritten', [b.id], reasons.legalAnnotated(lang));
+      rec.record(type, [b.id], why.legal);
       return { ...b, state: 'annotated' };
     case 'heading':
     case 'text':
@@ -226,11 +236,11 @@ function rewrite(b: ViewBlock, ctx: Ctx): ViewBlock {
     case 'faq':
     case 'promo':
       if (!b.plainText) return b;
-      rec.record('rewritten', [b.id], reasons.rewritten(lang));
+      rec.record(type, [b.id], why.text);
       return { ...b, text: b.plainText, original: b.text, state: 'rewritten' };
     case 'deadline':
       if (!b.plainText) return b;
-      rec.record('rewritten', [b.id], reasons.rewritten(lang));
+      rec.record(type, [b.id], why.text);
       // 'moved' is the more informative state; `original` still marks the rewrite.
       return {
         ...b,
@@ -240,14 +250,14 @@ function rewrite(b: ViewBlock, ctx: Ctx): ViewBlock {
       };
     case 'field': {
       if (!b.plainHelp) return b;
-      rec.record('rewritten', [b.id], reasons.helpRewritten(lang));
+      rec.record(type, [b.id], why.help);
       const next: ViewBlock = { ...b, help: b.plainHelp, state: 'rewritten' };
       if (b.help !== undefined) next.original = b.help;
       return next;
     }
     case 'decision':
       if (!b.plainLabel) return b;
-      rec.record('rewritten', [b.id], reasons.decisionAnnotated(lang));
+      rec.record(type, [b.id], why.decision);
       return { ...b, state: 'annotated' };
     default:
       return b;

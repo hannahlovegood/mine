@@ -28,6 +28,7 @@ export function emptySummary(): Summary {
     collapsed: 0,
     moved: 0,
     rewritten: 0,
+    translated: 0,
     explained: 0,
     enlarged: 0,
     steps: 0,

@@ -107,6 +107,7 @@ export function useMine(initialLang: Lang): Mine {
         if (words) commit(words.preferences, 'words');
         return;
       }
+      if (id === 'translate') return; // the web demo has no translated content; the extension owns this mode
       applyPreset(id);
     },
     [applyPreset, commit, words],

@@ -39,7 +39,8 @@ Return ONLY a JSON object with exactly two keys:
 Rules:
 - Start from DEFAULT and change only what the person's words justify. Unmentioned settings stay at DEFAULT.
 - Work only from stated preferences. Never infer, mention, or imply a diagnosis, disability, or condition, even if the person names one; respond to the preference, not the label.
-- If the person asks for something the schema cannot express, ignore it silently. Do not add keys.
+- If the person asks for a translation, add one more key "translateTo" with the language code they name ("zh", "en", "ja", "ko", "es", "fr", "de"), or the code of the language they wrote in when they name none. Otherwise omit it.
+- If the person asks for something else the schema cannot express, ignore it silently. Do not add other keys.
 - Output raw JSON. No prose, no markdown, no code fences.
 DEFAULT: {"readingLevel":"original","density":"full","navigation":"full","fontScale":1,"contrast":"default","showDecorativeMedia":true,"taskMode":"all","explainTerms":false,"surfaceDecisions":false}
 Example input: "I get overwhelmed by long forms. Use plain words, explain anything I might not know, and give me one decision at a time."

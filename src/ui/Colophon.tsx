@@ -64,6 +64,7 @@ function Summary({ tr, lang, animateCounts }: { tr: Transformation; lang: Lang; 
   const collapsed = useCountUp(s.collapsed, 600, on);
   const moved = useCountUp(s.moved, 600, on);
   const rewritten = useCountUp(s.rewritten, 600, on);
+  const translated = useCountUp(s.translated, 600, on);
   const explained = useCountUp(s.explained, 600, on);
   const enlarged = useCountUp(s.enlarged, 600, on);
   const steps = useCountUp(s.steps, 600, on);
@@ -79,6 +80,7 @@ function Summary({ tr, lang, animateCounts }: { tr: Transformation; lang: Lang; 
   push('colophon.frag.collapsed', s.collapsed, collapsed);
   push('colophon.frag.moved', s.moved, moved);
   push('colophon.frag.rewritten', s.rewritten, rewritten);
+  push('colophon.frag.translated', s.translated, translated);
   push('colophon.frag.explained', s.explained, explained);
   push('colophon.frag.enlarged', s.enlarged, enlarged);
   if (s.steps) frags.push(<Frag key="steps" tpl={copy['colophon.frag.steps'][lang]} values={{ fields, steps }} />);
@@ -122,7 +124,7 @@ export function Colophon(p: Props) {
               const ids = c.blockIds;
               const restorable = c.type === 'hidden';
               const allRestored = restorable && ids.every((id) => p.restored.has(id));
-              const showOrig = c.type === 'rewritten' && ids.length === 1 && ids[0] !== undefined;
+              const showOrig = (c.type === 'rewritten' || c.type === 'translated') && ids.length === 1 && ids[0] !== undefined;
               const origShown = showOrig && p.originals.has(ids[0]!);
               return (
                 <li key={i} onMouseEnter={() => p.onInspect(ids)} onMouseLeave={() => p.onInspect(null)} onFocus={() => p.onInspect(ids)} onBlur={() => p.onInspect(null)}>
