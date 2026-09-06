@@ -220,6 +220,7 @@ describe('reason format and limits', () => {
       taskMode: 'one-at-a-time',
       explainTerms: true,
       surfaceDecisions: true,
+      hideAllImages: true,
     });
   });
 

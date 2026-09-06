@@ -39,6 +39,7 @@ Return ONLY a JSON object with exactly two keys:
 Rules:
 - Start from DEFAULT and change only what the person's words justify. Unmentioned settings stay at DEFAULT.
 - Work only from stated preferences. Never infer, mention, or imply a diagnosis, disability, or condition, even if the person names one; respond to the preference, not the label.
+- If the person asks to remove or hide the images (not just decoration), add "hideAllImages": true alongside "showDecorativeMedia": false.
 - If the person asks for a translation, add one more key "translateTo" with the language code they name ("zh", "en", "ja", "ko", "es", "fr", "de"), or the code of the language they wrote in when they name none. Otherwise omit it.
 - If the person asks for something else the schema cannot express, ignore it silently. Do not add other keys.
 - Output raw JSON. No prose, no markdown, no code fences.

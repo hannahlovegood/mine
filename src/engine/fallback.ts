@@ -88,14 +88,17 @@ export const PHRASE_GROUPS: readonly PhraseGroup[] = [
     zh: ['保留图片', '留下图片'],
     apply: (p) => {
       p.showDecorativeMedia = true;
+      delete p.hideAllImages;
     },
   },
   {
     key: 'mediaOff',
-    en: ['no images', 'remove images', 'hide pictures'],
-    zh: ['去掉图片', '不要图片'],
+    en: ['no images', 'remove images', 'remove the images', 'hide pictures', 'hide images', 'without images', 'no pictures'],
+    zh: ['去掉图片', '不要图片', '去除图片', '删除图片', '隐藏图片', '不看图片', '去掉插图', '去掉所有图片'],
     apply: (p) => {
+      // Said in so many words: every image goes, informative ones included (rule 1).
       p.showDecorativeMedia = false;
+      p.hideAllImages = true;
     },
   },
   {

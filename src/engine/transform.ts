@@ -81,7 +81,12 @@ function planSetAside(blocks: readonly ContentBlock[], ctx: Ctx): Plan {
   };
 
   // Rule 1 — media. Decorative images are set aside; informative images stay.
-  if (!prefs.showDecorativeMedia) {
+  if (prefs.hideAllImages) {
+    // The person asked in words for no images: informative ones go too (never anything critical).
+    const images = blocks.filter((b) => b.kind === 'image' && b.importance !== 'critical');
+    images.forEach((b) => setAside(b));
+    rec.record('hidden', images.map((b) => b.id), reasons.hiddenAllImages(lang, images.length));
+  } else if (!prefs.showDecorativeMedia) {
     const images = blocks.filter((b) => b.kind === 'image' && b.decorative);
     images.forEach((b) => setAside(b));
     rec.record(

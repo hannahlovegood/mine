@@ -26,6 +26,12 @@ export const reasons = {
   },
 
   /** Rule 2 — decorative / secondary blocks set aside, one change per region. */
+  /** Rule 1, on request — every image set aside, captions and all; each is one tap away. */
+  hiddenAllImages(lang: Lang, n: number): string {
+    if (lang === 'zh') return `按你的要求收起 ${n} 张图片，包括有说明的插图；每一张都能展开。`;
+    return `${n} image${n === 1 ? '' : 's'} set aside at your request, informative ones included; each can be shown again.`;
+  },
+
   hidden(lang: Lang, n: number, region?: string): string {
     const where = region === undefined ? undefined : REGION[region];
     if (lang === 'zh') return `${where?.zh ?? ''}收起 ${n} 项，完成本页用不到。`;
