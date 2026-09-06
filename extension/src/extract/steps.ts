@@ -4,7 +4,7 @@
 // - The schema requires at least one step, so a page with fewer than two fields still gets a
 //   step: the same grouping rules run for one control, and a page without any control gets one
 //   placeholder `s-1` titled "Part 1" / "第 1 部分" (the engine drops empty steps).
-// - A heading-titled group with more than six controls is split into chunks of four titled
+// - A heading-titled or fieldset group with more than six controls is split into chunks of four titled
 //   "Part n" — fourteen fields under one "Application form" heading is not a step. Fieldsets are
 //   author-defined and are never split.
 // - "Nearest preceding heading inside or just before the form": the last heading before the
@@ -102,7 +102,8 @@ export function assignSteps(controls: StepControl[], ctx: ExtractContext): StepP
   // split oversized heading groups into chunks of four
   const split: Group[] = [];
   for (const g of groups) {
-    if (g.kind === 'heading' && g.ids.length > SPLIT_ABOVE) {
+    // A fieldset holding a whole 30-question survey is not one step either (问卷星 wraps every question in one).
+    if ((g.kind === 'heading' || g.kind === 'fieldset') && g.ids.length > SPLIT_ABOVE) {
       for (let i = 0; i < g.ids.length; i += CHUNK) split.push({ key: null, kind: 'chunk', title: '', ids: g.ids.slice(i, i + CHUNK) });
     } else {
       split.push(g);

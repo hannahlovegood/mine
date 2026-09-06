@@ -33,6 +33,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
   });
+  const sw = ctx.serviceWorkers()[0] ?? (await ctx.waitForEvent('serviceworker'));
+  const extId = new URL(sw.url()).host;
   const report = [];
   for (const url of urls) {
     const page = await ctx.newPage();
@@ -45,22 +47,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
       await sleep(2500);
-      const inPanel = (fn, arg) => page.evaluate(([f, a]) => {
-        const root = document.querySelector('mine-root')?.shadowRoot;
-        return new Function('root', 'arg', `return (${f})(root, arg)`)(root, a);
-      }, [fn.toString(), arg]);
-      row.fab = await inPanel((root) => !!root?.querySelector('.fab'));
+      // Drive the side panel as a page (the app reads ?tab=).
+      const tabId = await sw.evaluate(async (u) => (await chrome.tabs.query({})).find((t) => t.url === u)?.id, page.url());
+      row.fab = await page.evaluate(() => !!document.querySelector('mine-root')?.shadowRoot?.querySelector('.fab'));
       if (!row.fab) throw new Error('no fab (content script did not run)');
-      await inPanel((root) => root.querySelector('.fab').click());
-      await sleep(300);
-      await inPanel((root) => {
-        const b = [...root.querySelectorAll('[role=group] button, .modes button, .modes label')].find((x) => /Focus|专注/.test(x.textContent));
-        (b.querySelector('input') ?? b).click();
-      });
-      await sleep(1800);
-      row.summary = await inPanel((root) => root.querySelector('.summary')?.textContent?.trim() ?? '');
-      row.notice = await inPanel((root) => root.querySelector('.notice')?.textContent?.trim() ?? '');
-      row.blocks = await inPanel((root) => root.querySelector('.desc + .desc, .body .desc')?.textContent ?? '');
+      const panel = await ctx.newPage();
+      await panel.goto(`chrome-extension://${extId}/sidepanel.html?tab=${tabId}`);
+      await panel.waitForSelector('.opening, .edition, .blocked', { timeout: 10000 });
+      if ((await panel.locator('.opening .primary').count()) === 0) throw new Error('panel: ' + (await panel.locator('.blocked').innerText().catch(() => 'no opening')));
+      await panel.locator('.opening .primary').click();
+      await sleep(2000);
+      row.summary = await panel.locator('.summary').innerText().catch(() => '');
+      row.notice = await panel.locator('.notice').innerText().catch(() => '');
       const state = await page.evaluate(() => {
         const hidden = document.querySelectorAll('[data-mine-hidden]').length;
         const stepHidden = document.querySelectorAll('[data-mine-step-hidden]').length;
@@ -75,8 +73,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       });
       Object.assign(row, state);
       await page.screenshot({ path: join(SHOTS, `${new URL(url).hostname}.png`), fullPage: false });
-      await inPanel((root) => root.querySelector('.reset').click());
+      await panel.locator('.reset').click().catch(() => undefined);
       await sleep(600);
+      await panel.close();
       row.leftovers = await page.evaluate(() => document.querySelectorAll('[data-mine-hidden], [data-mine-step-hidden], [data-mine-injected], [data-mine-mark], [data-mine-folded]').length);
       row.errors = errors;
       // Sites throw their own errors (ad scripts, bad attributes); only errors that mention Mine count against us.

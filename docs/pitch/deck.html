@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>由我 Mine · 三分钟</title>
+<style>
+  @font-face { font-family: 'Literata Variable'; src: url('../../extension/public/fonts/literata-latin-wght-normal.woff2') format('woff2'); font-weight: 200 900; }
+  :root { --paper:#fff; --ink:#000; --graphite:#55534f; --rule:#d8d5ce; --stub:#f1efe9; --pencil:#2743d9; --portal:#1e5aa8; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #e9e7e2; color: var(--ink); font-family: -apple-system, 'PingFang SC', 'Noto Sans CJK SC', 'Atkinson Hyperlegible', system-ui, sans-serif; }
+  .deck { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px; }
+  .slide { width: 1280px; height: 720px; background: var(--paper); position: relative; padding: 72px 88px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; box-shadow: 0 1px 0 var(--rule); }
+  .serif { font-family: 'Literata Variable', 'Songti SC', 'Noto Serif CJK SC', Georgia, serif; }
+  .statement { font-family: 'Songti SC', 'Noto Serif CJK SC', 'Literata Variable', serif; font-weight: 600; font-size: 64px; line-height: 1.2; letter-spacing: 0; margin: 0; }
+  .statement.en { font-family: 'Literata Variable', Georgia, serif; font-weight: 500; letter-spacing: -0.02em; }
+  .sub { font-size: 26px; color: var(--graphite); line-height: 1.5; margin: 24px 0 0; max-width: 30em; }
+  .mark { position: absolute; left: 88px; top: 48px; font-family: 'Literata Variable', Georgia, serif; font-size: 28px; font-weight: 500; }
+  .mark i { color: var(--pencil); font-style: normal; }
+  .mark small { font-family: inherit; font-size: 16px; color: var(--graphite); margin-left: 12px; }
+  .num { position: absolute; right: 88px; bottom: 40px; color: var(--graphite); font-size: 16px; }
+  h2 { font-family: 'Songti SC', 'Noto Serif CJK SC', serif; font-weight: 600; font-size: 44px; line-height: 1.25; margin: 0 0 36px; }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+  .cols h3 { font-family: 'Songti SC', 'Noto Serif CJK SC', serif; font-weight: 600; font-size: 30px; margin: 0 0 12px; }
+  .cols p { font-size: 20px; line-height: 1.55; color: var(--graphite); margin: 0; }
+  .flow { display: flex; align-items: center; gap: 28px; margin-top: 8px; }
+  .box { border: 2px solid var(--ink); padding: 22px 26px; font-size: 22px; line-height: 1.4; min-width: 220px; }
+  .box small { display: block; color: var(--graphite); font-size: 16px; margin-top: 6px; }
+  .arrow { font-size: 34px; color: var(--graphite); }
+  .rules { margin: 36px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 40px; font-size: 21px; color: var(--graphite); }
+  .rules li::before { content: '— '; color: var(--pencil); }
+  .pencil { color: var(--pencil); }
+  .portal { background: #fff; border: 1px solid #c9d1dc; font-size: 15px; width: 620px; }
+  .portal .bar { background: var(--portal); color: #fff; padding: 10px 14px; font-weight: 700; }
+  .portal .nav { background: var(--portal); color: #fff; padding: 0 14px 10px; font-size: 12px; opacity: .9; }
+  .portal .body { padding: 14px; color: #1b1f24; line-height: 1.35; }
+  .portal .body p { margin: 0 0 8px; font-size: 13px; }
+  .portal .legal { background: #eef1f5; border: 1px solid #c9d1dc; padding: 8px; font-size: 12px; margin: 0 0 8px; }
+  .callout { position: absolute; background: var(--paper); border: 2px solid var(--pencil); color: var(--pencil); padding: 8px 12px; font-size: 18px; border-radius: 4px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .split img { width: 100%; border: 1px solid var(--rule); }
+  .caption { font-size: 18px; color: var(--graphite); margin: 10px 0 0; }
+  .end p { font-family: 'Songti SC', 'Noto Serif CJK SC', serif; font-weight: 600; font-size: 56px; line-height: 1.25; margin: 0; }
+  .end p + p { margin-top: 10px; }
+  .end .link { margin-top: 48px; font-size: 22px; color: var(--pencil); }
+  @media print { html, body { background: #fff; } .deck { padding: 0; gap: 0; } .slide { box-shadow: none; page-break-after: always; } }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<section class="slide">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <h1 class="statement">界面从不中立。</h1>
+  <p class="sub">每个页面都预设了一位读者：有时间、眼神好、耐得住术语。<br/>「由我」让你把这位预设读者，换成你自己。</p>
+  <div class="num">1 / 7</div>
+</section>
+
+<section class="slide">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <h2>一张通过了无障碍检测的申领页</h2>
+  <div style="position:relative; display:flex; gap:48px; align-items:flex-start;">
+    <div class="portal">
+      <div class="bar">县政务服务门户</div>
+      <div class="nav">首页 · 补贴 · 住房 · 申领 · 进度 · 材料 · 表格 · 常见问题 · 联系 · 无障碍 · 语言 · 登录</div>
+      <div class="body">
+        <p><b>灵活就业人员社会保险补贴——网上申领</b></p>
+        <p>灵活就业人员社会保险补贴（以下简称「社保补贴」）是依据《就业补助资金管理办法》设立的就业扶持项目，所需资金由市、区两级就业补助资金列支……</p>
+        <div class="legal">申领条件。同时符合下列条件的人员，可以申领本补贴：（一）具有本市户籍，或持有本市居住证且在本市连续缴纳社会保险费满6个月……</div>
+        <p>申请提交后，由申领人户籍地或居住地的区级公共就业服务机构受理并初审……</p>
+        <p>本批次补贴实行网上集中受理，申领人应通过本平台提交申请，经办机构按提交先后顺序审核。本批次申领截止时间为2026年10月30日17:00，系统届时自动关闭……</p>
+        <p style="color:#4a5561">［下方：12 个填写项 · ☑ 本人同意将申领信息共享给合作机构 · 暂存 / 提交 / 下载 PDF］</p>
+      </div>
+    </div>
+    <div style="flex:1; font-size:24px; line-height:1.6; color:var(--graphite)">
+      <p style="margin:0 0 18px"><span class="pencil">截止日期</span>藏在第四段。</p>
+      <p style="margin:0 0 18px"><span class="pencil">十二个填写项</span>，必填标记前后不一。</p>
+      <p style="margin:0 0 18px">表单底部，一项<span class="pencil">默认勾选的数据共享授权</span>。</p>
+      <p style="margin:0">自动化检测：零违规。<br/>合规，不等于可用。</p>
+    </div>
+  </div>
+  <div class="num">2 / 7</div>
+</section>
+
+<section class="slide">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <h2>一个页面，三种自由</h2>
+  <div class="cols">
+    <div><h3>塑形的自由</h3><p>专注、平实、大字三种预设，或者用你自己的话说：「一次只让我做一个决定」。收起、归组、放大、平实语言、一次一步。</p></div>
+    <div><h3>看见选择的自由</h3><p>页面要你做的每个决定都摆到台前，标出哪些可选、哪些原本已被默认勾选。我们不替你取消，只确保你看见。</p></div>
+    <div><h3>改变主意的自由</h3><p>原版只隔一次按住。每一处改动都有理由、都能撤回。没有任何决定是替你做的。</p></div>
+  </div>
+  <div class="num">3 / 7</div>
+</section>
+
+<section class="slide">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <h2>它怎么做到：三层，一个纯函数</h2>
+  <div class="flow">
+    <div class="box">块结构<small>网页 → 标题 / 段落 / 截止日期 / 填写项 / 决定 / 按钮，各带重要性</small></div>
+    <div class="arrow">→</div>
+    <div class="box">引擎<small>九条规则，纯函数、确定、离线</small></div>
+    <div class="arrow">→</div>
+    <div class="box">你的版本 + 账本<small>每个数字从改动列表算出，不是写出来的</small></div>
+  </div>
+  <ul class="rules">
+    <li>关键信息在任何模式下都不会消失</li>
+    <li>必填项恰好出现一次</li>
+    <li>平实版里每一个数字与原文一致</li>
+    <li>预勾选状态永远不被引擎改动</li>
+    <li>同样的输入，同样的输出</li>
+    <li>模型只出现在两处：读你的话、改写文字，且来源永远显示</li>
+  </ul>
+  <div class="num">4 / 7</div>
+</section>
+
+<section class="slide">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <h2>在你真正要办事的网站上，原地重排</h2>
+  <div class="split">
+    <div><img src="../shots/extension/choice-zh.png" alt="扩展在真实页面上：预勾选授权单独成为一步，加上注记" /><p class="caption">真表单还是真表单：只加注记，不改勾选。</p></div>
+    <div><img src="../shots/extension/panel-focus-zh.png" alt="Chrome 侧边栏里的改动账本" /><p class="caption">Chrome 侧边栏：收起 17 项、分成 4 步、揭示 1 个选择，每一项可撤回。</p></div>
+  </div>
+  <div class="num">5 / 7</div>
+</section>
+
+<section class="slide">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <h2>诚实的边界，和下一步</h2>
+  <div class="cols" style="grid-template-columns: 1fr 1fr;">
+    <div><h3>今天</h3><p>识别真实网页是启发式的：九种页面形状 302 个测试，七个真实站点走查通过；认不出的块一律不动，关键内容有不变量兜底。平实语言改写每个数字必须原样保留，否则整段丢弃。</p></div>
+    <div><h3>下一步</h3><p>Chrome 商店上架；逐站适配器覆盖政务、社保、银行、医院预约；Safari 与 iPhone 套壳；可携带的偏好护照：说一次你需要怎样的页面，之后每个网站自动照办。</p></div>
+  </div>
+  <div class="num">6 / 7</div>
+</section>
+
+<section class="slide end">
+  <div class="mark">Mine<i>.</i><small>由我</small></div>
+  <p>能进入，还不够。</p>
+  <p>能掌控，才算数。</p>
+  <p style="font-size:34px; font-weight:500; margin-top:28px; color:var(--graphite)">自由，是能决定世界以什么方式来到你面前。</p>
+  <div class="link">github.com/hannahlovegood/mine</div>
+  <div class="num">7 / 7</div>
+</section>
+
+</div>
+</body>
+</html>
