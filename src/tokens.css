@@ -1,0 +1,56 @@
+/* Design tokens — "Editions" (§9). Two visual languages on one screen. */
+:root {
+  /* Before: the portal (government-portal vernacular, plausible not parodic) */
+  --portal-blue: #1e5aa8;
+  --portal-blue-dark: #164782;
+  --portal-panel: #eef1f5;
+  --portal-border: #c9d1dc;
+  --portal-text: #1b1f24;
+  --portal-muted: #4a5561;
+  --portal-alert: #c8102e;
+  --portal-warn: #fff3cd;
+  --portal-warn-border: #e0c36b;
+  --portal-link: #0b4ea2;
+  --portal-font:
+    'Public Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', Arial, sans-serif;
+
+  /* After: the edition */
+  --paper: #ffffff;
+  --ink: #000000;
+  --graphite: #55534f;
+  --rule: #d8d5ce;
+  --stub: #f1efe9;
+  --pencil: #2743d9;
+  --pencil-soft: #e4e8fb;
+
+  --font-edition: 'Literata Variable', Literata, Georgia, 'Songti SC', 'Noto Serif CJK SC', serif;
+  --font-interface:
+    'Atkinson Hyperlegible', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', sans-serif;
+  --font-cjk-serif: 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
+  --font-cjk-sans: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+
+  /* Set by the UI from preferences */
+  --font-scale: 1;
+  --edition-size: calc(18px * var(--font-scale));
+  --edition-leading: 1.6;
+  --measure: 68ch;
+  --target: 44px;
+  --focus-ring: 3px solid var(--pencil);
+  --rule-weight: 1px;
+}
+
+:root[data-contrast='high'] {
+  --graphite: #2a2926;
+  --rule: #6b6862;
+  --stub: #ebe8e0;
+  --rule-weight: 2px;
+}
+
+:root[lang='zh'],
+:root[lang='zh-CN'] {
+  --edition-size: calc(17px * var(--font-scale));
+  --edition-leading: 1.8;
+  --measure: 40em;
+}

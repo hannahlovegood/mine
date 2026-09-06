@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@theme {
+  --color-paper: #ffffff;
+  --color-ink: #000000;
+  --color-graphite: #55534f;
+  --color-rule: #d8d5ce;
+  --color-stub: #f1efe9;
+  --color-pencil: #2743d9;
+  --color-pencil-soft: #e4e8fb;
+  --color-portal-blue: #1e5aa8;
+  --color-portal-panel: #eef1f5;
+  --color-portal-alert: #c8102e;
+  --font-edition: 'Literata Variable', Literata, Georgia, 'Songti SC', 'Noto Serif CJK SC', serif;
+  --font-interface:
+    'Atkinson Hyperlegible', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', sans-serif;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-interface);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

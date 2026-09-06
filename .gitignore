@@ -1,0 +1,9 @@
+node_modules
+dist
+.vercel
+.env
+.env.local
+.DS_Store
+coverage
+docs/recordings/*.mov
+docs/recordings/*.mp4
