@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" role="img" aria-labelledby="hero-t">
+  <title id="hero-t">Row houses on a tree-lined street</title>
+  <defs>
+    <symbol id="w" viewBox="0 0 20 26">
+      <rect x="1" y="1" width="18" height="24" fill="#F7F9FB" stroke="#3B4A5A" stroke-width="2"/>
+      <path d="M10 1v24M1 13h18" stroke="#3B4A5A" stroke-width="1.5"/>
+    </symbol>
+    <symbol id="tree" viewBox="0 0 60 90">
+      <rect x="27" y="55" width="6" height="35" fill="#7A6A5A"/>
+      <circle cx="30" cy="38" r="24" fill="#8FA593"/>
+      <circle cx="18" cy="48" r="14" fill="#7F9B84"/>
+      <circle cx="43" cy="46" r="15" fill="#7F9B84"/>
+    </symbol>
+  </defs>
+  <rect width="800" height="300" fill="#EEF1F5"/>
+  <g fill="#FFFFFF">
+    <ellipse cx="130" cy="60" rx="46" ry="14"/><ellipse cx="150" cy="50" rx="30" ry="14"/>
+    <ellipse cx="620" cy="48" rx="52" ry="14"/><ellipse cx="600" cy="38" rx="28" ry="13"/>
+  </g>
+  <rect y="232" width="800" height="68" fill="#D9DEE5"/>
+  <rect y="232" width="800" height="3" fill="#B7BFCB"/>
+  <rect y="262" width="800" height="2" fill="#C9CFD8"/>
+  <g stroke="#3B4A5A" stroke-width="2" stroke-linejoin="round">
+    <rect x="70" y="118" width="120" height="114" fill="#C9D6E8"/>
+    <path d="M64 118 130 66 196 118Z" fill="#8FA3BD"/>
+    <rect x="164" y="80" width="12" height="22" fill="#8FA3BD"/>
+    <rect x="115" y="184" width="30" height="48" fill="#5C6B7C"/>
+    <rect x="200" y="96" width="130" height="136" fill="#E8DCC8"/>
+    <rect x="194" y="90" width="142" height="10" fill="#B9A98C"/>
+    <rect x="252" y="188" width="28" height="44" fill="#7A6A5A"/>
+    <rect x="340" y="128" width="110" height="104" fill="#D8C3B5"/>
+    <path d="M334 128 395 80 456 128Z" fill="#A98C7C"/>
+    <rect x="380" y="190" width="28" height="42" fill="#5C6B7C"/>
+    <rect x="460" y="104" width="130" height="128" fill="#C5D3C7"/>
+    <rect x="454" y="98" width="142" height="10" fill="#8FA593"/>
+    <rect x="512" y="186" width="28" height="46" fill="#7A6A5A"/>
+    <rect x="600" y="122" width="120" height="110" fill="#DDD5C4"/>
+    <path d="M594 122 660 72 726 122Z" fill="#A99F8C"/>
+    <rect x="690" y="86" width="12" height="22" fill="#A99F8C"/>
+    <rect x="644" y="186" width="30" height="46" fill="#5C6B7C"/>
+  </g>
+  <g>
+    <use href="#w" x="86" y="134" width="20" height="26"/><use href="#w" x="154" y="134" width="20" height="26"/>
+    <use href="#w" x="86" y="184" width="20" height="26"/><use href="#w" x="154" y="184" width="20" height="26"/>
+    <use href="#w" x="214" y="112" width="20" height="26"/><use href="#w" x="255" y="112" width="20" height="26"/><use href="#w" x="296" y="112" width="20" height="26"/>
+    <use href="#w" x="214" y="154" width="20" height="26"/><use href="#w" x="255" y="154" width="20" height="26"/><use href="#w" x="296" y="154" width="20" height="26"/>
+    <use href="#w" x="214" y="196" width="20" height="26"/><use href="#w" x="296" y="196" width="20" height="26"/>
+    <use href="#w" x="352" y="144" width="20" height="26"/><use href="#w" x="418" y="144" width="20" height="26"/>
+    <use href="#w" x="352" y="190" width="20" height="26"/><use href="#w" x="418" y="190" width="20" height="26"/>
+    <use href="#w" x="474" y="120" width="20" height="26"/><use href="#w" x="515" y="120" width="20" height="26"/><use href="#w" x="556" y="120" width="20" height="26"/>
+    <use href="#w" x="474" y="160" width="20" height="26"/><use href="#w" x="515" y="160" width="20" height="26"/><use href="#w" x="556" y="160" width="20" height="26"/>
+    <use href="#w" x="474" y="196" width="20" height="26"/><use href="#w" x="556" y="196" width="20" height="26"/>
+    <use href="#w" x="616" y="138" width="20" height="26"/><use href="#w" x="684" y="138" width="20" height="26"/>
+    <use href="#w" x="616" y="186" width="20" height="26"/><use href="#w" x="684" y="186" width="20" height="26"/>
+  </g>
+  <g fill="#F7F9FB">
+    <circle cx="138" cy="210" r="2"/><circle cx="274" cy="212" r="2"/><circle cx="402" cy="213" r="2"/>
+    <circle cx="534" cy="211" r="2"/><circle cx="668" cy="211" r="2"/>
+  </g>
+  <use href="#tree" x="8" y="150" width="60" height="90"/>
+  <use href="#tree" x="732" y="146" width="60" height="90"/>
+</svg>

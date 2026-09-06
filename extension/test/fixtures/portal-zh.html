@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>灵活就业人员社会保险补贴——网上申领</title>
+<style>
+/* Design tokens — "Editions" (§9). Two visual languages on one screen. */
+:root {
+  /* Before: the portal (government-portal vernacular, plausible not parodic) */
+  --portal-blue: #1e5aa8;
+  --portal-blue-dark: #164782;
+  --portal-panel: #eef1f5;
+  --portal-border: #c9d1dc;
+  --portal-text: #1b1f24;
+  --portal-muted: #4a5561;
+  --portal-alert: #c8102e;
+  --portal-warn: #fff3cd;
+  --portal-warn-border: #e0c36b;
+  --portal-link: #0b4ea2;
+  --portal-font:
+    'Public Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', Arial, sans-serif;
+
+  /* After: the edition */
+  --paper: #ffffff;
+  --ink: #000000;
+  --graphite: #55534f;
+  --rule: #d8d5ce;
+  --stub: #f1efe9;
+  --pencil: #2743d9;
+  --pencil-soft: #e4e8fb;
+
+  --font-edition: 'Literata Variable', Literata, Georgia, 'Songti SC', 'Noto Serif CJK SC', serif;
+  --font-interface:
+    'Atkinson Hyperlegible', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', sans-serif;
+  --font-cjk-serif: 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
+  --font-cjk-sans: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+
+  /* Set by the UI from preferences */
+  --font-scale: 1;
+  --edition-size: calc(18px * var(--font-scale));
+  --edition-leading: 1.6;
+  --measure: 68ch;
+  --target: 44px;
+  --focus-ring: 3px solid var(--pencil);
+  --rule-weight: 1px;
+}
+
+:root[data-contrast='high'] {
+  --graphite: #2a2926;
+  --rule: #6b6862;
+  --stub: #ebe8e0;
+  --rule-weight: 2px;
+}
+
+:root[lang='zh'],
+:root[lang='zh-CN'] {
+  --edition-size: calc(17px * var(--font-scale));
+  --edition-leading: 1.8;
+  --measure: 40em;
+}
+
+body { margin: 0; background: #e9ecef; }
+.portal { max-width: 1100px; margin: 0 auto; }
+/* The portal — government-portal vernacular, plausible not parodic. Scoped under .portal */
+.portal {
+  font-family: var(--portal-font);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--portal-text);
+  background: #ffffff;
+  position: relative;
+  overflow: clip;
+}
+.portal a { color: var(--portal-link); text-decoration: underline; }
+.portal p { margin: 0 0 10px; }
+.portal ul, .portal ol { margin: 0 0 10px; padding-left: 22px; }
+.portal img { display: block; max-width: 100%; height: auto; }
+
+.portal-utility {
+  background: #f4f5f7;
+  border-bottom: 1px solid var(--portal-border);
+  font-size: 12px;
+  padding: 4px 16px;
+}
+.portal-utility ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 16px; list-style: none; margin: 0; padding: 0; }
+
+.portal-masthead { background: var(--portal-blue); color: #fff; padding: 12px 16px 0; }
+.portal-brand { font-weight: 700; font-size: 20px; letter-spacing: -0.01em; line-height: 1.1; }
+.portal-brand small { display: block; font-weight: 400; font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.portal-mainnav ul { display: flex; flex-wrap: wrap; gap: 0 2px; list-style: none; margin: 10px 0 0; padding: 0; font-size: 13px; }
+.portal-mainnav a { display: inline-block; color: #fff; text-decoration: none; padding: 7px 10px; border-bottom: 3px solid transparent; }
+.portal-mainnav a:hover, .portal-mainnav a:focus-visible { border-bottom-color: #fff; }
+.portal-mainnav li:first-child a { border-bottom-color: #ffffffaa; }
+
+.portal-promo {
+  background: #dfe9f7;
+  border-bottom: 1px solid #b9cbe6;
+  padding: 10px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.portal-promo img { width: 44px; height: 44px; flex: none; }
+.portal-promo .portal-btn { margin-left: auto; }
+
+.portal-notice {
+  background: var(--portal-warn);
+  border: 1px solid var(--portal-warn-border);
+  padding: 8px 12px;
+  margin: 12px 16px 0;
+  font-size: 13px;
+}
+.portal-notice::before { content: '⚠ '; }
+
+.portal-body { display: flex; gap: 24px; padding: 14px 16px 28px; }
+.portal-main { flex: 1 1 auto; min-width: 0; }
+.portal-side { flex: 0 0 236px; font-size: 13px; }
+@media (max-width: 720px) {
+  .portal-body { flex-direction: column; }
+  .portal-side { flex-basis: auto; }
+}
+
+.portal h1, .portal .portal-h1 { font-size: 26px; line-height: 1.15; font-weight: 700; margin: 6px 0 12px; color: #14325a; }
+.portal .portal-h2 { font-size: 19px; line-height: 1.2; font-weight: 700; margin: 22px 0 8px; color: #14325a; border-bottom: 2px solid var(--portal-blue); padding-bottom: 4px; }
+.portal .portal-h3 { font-size: 15px; font-weight: 700; margin: 14px 0 6px; }
+.portal-hero { margin: 0 0 12px; border: 1px solid var(--portal-border); }
+.portal-hero img { width: 100%; }
+.portal-figure { margin: 0 0 12px; }
+.portal-figure figcaption { font-size: 12px; color: var(--portal-muted); margin-top: 4px; }
+
+.portal-legal { font-size: 13px; line-height: 1.4; background: var(--portal-panel); border: 1px solid var(--portal-border); padding: 10px 12px; margin: 0 0 12px; }
+.portal-instruction { border-left: 4px solid var(--portal-blue); padding: 6px 12px; margin: 0 0 12px; background: #f7f9fc; }
+.portal-deadline { margin: 0 0 10px; }
+
+.portal-side-box { border: 1px solid var(--portal-border); margin: 0 0 14px; }
+.portal-side-box .portal-side-title { background: var(--portal-panel); border-bottom: 1px solid var(--portal-border); font-weight: 700; font-size: 13px; padding: 6px 10px; }
+.portal-side-box .portal-side-content { padding: 8px 10px; }
+.portal-side-box ul { list-style: none; padding: 0; margin: 0; }
+.portal-side-box li { padding: 4px 0; border-bottom: 1px dotted var(--portal-border); }
+.portal-side-box li:last-child { border-bottom: 0; }
+.portal-rate { border: 1px solid var(--portal-border); background: #f4f5f7; padding: 10px; font-size: 13px; text-align: center; }
+.portal-rate .stars { color: #d9a400; letter-spacing: 2px; font-size: 16px; display: block; margin: 4px 0; }
+
+.portal-form { background: var(--portal-panel); border: 1px solid var(--portal-border); padding: 12px 14px 16px; margin: 0 0 14px; }
+.portal-field { margin: 0 0 12px; }
+.portal-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.portal-field .req { color: var(--portal-alert); }
+.portal-field .req-word { font-weight: 400; color: var(--portal-muted); font-size: 12px; }
+.portal-field input, .portal-field select, .portal-field textarea {
+  font: inherit; font-size: 14px; width: 100%; max-width: 420px; padding: 6px 8px;
+  border: 1px solid #8b96a3; border-radius: 3px; background: #fff; color: inherit;
+}
+.portal-field textarea { min-height: 72px; }
+.portal-field .help { font-size: 12px; color: var(--portal-muted); margin-top: 3px; }
+.portal-check { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; font-size: 13px; }
+.portal-check input { margin-top: 3px; flex: none; }
+.portal-check .consequence { display: block; font-size: 12px; color: var(--portal-muted); margin-top: 2px; }
+
+.portal-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0 6px; }
+.portal-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 3px; cursor: pointer; border: 1px solid var(--portal-blue); background: #fff; color: var(--portal-blue); }
+.portal-btn.primary { background: var(--portal-blue); color: #fff; }
+.portal-btn.secondary { border-color: #8b96a3; color: #3c4653; background: #f7f8fa; }
+.portal-btn.pill { border-radius: 20px; background: #14325a; border-color: #14325a; color: #fff; padding: 7px 18px; }
+.portal-btn:hover { filter: brightness(0.96); }
+
+.portal-faq { border-top: 1px solid var(--portal-border); padding: 8px 0; }
+.portal-faq summary { font-weight: 600; cursor: pointer; font-size: 14px; }
+.portal-faq p { margin: 6px 0 0; font-size: 13px; }
+
+.portal-footer { background: #14325a; color: #d7e0ec; padding: 14px 16px 18px; font-size: 12px; }
+.portal-footer a { color: #fff; }
+.portal-footer ul { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0 0 10px; padding: 0; }
+.portal-footer .portal-legal { background: transparent; border: 0; padding: 0; color: #b7c4d6; font-size: 11px; margin: 0; }
+
+.portal-chat { position: sticky; bottom: 18px; height: 0; z-index: 2; pointer-events: none; }
+.portal-chat .portal-btn { position: absolute; right: 16px; bottom: 0; pointer-events: auto; border-radius: 24px; padding: 9px 16px; background: var(--portal-blue); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+
+</style>
+</head>
+<body>
+<link rel="preload" as="image" href="/img/app-promo-phone.svg"/><link rel="preload" as="image" href="/img/hero-rowhouses.svg"/><link rel="preload" as="image" href="/img/documents-checklist.svg"/><div class="portal" lang="zh-CN"><div class="portal-utility"><div><ul><li><a href="#">字号</a></li><li><a href="#">打印</a></li><li><a href="#">分享</a></li><li><a href="#">收藏</a></li><li><a href="#">帮助</a></li></ul></div></div><div class="portal-masthead"><div class="portal-brand">政务服务门户<small>官方网站</small></div><nav class="portal-mainnav" aria-label="站点菜单"><div><ul><li><a href="#">首页</a></li><li><a href="#">就业服务</a></li><li><a href="#">社保服务</a></li><li><a href="#">网上申领</a></li><li><a href="#">进度查询</a></li><li><a href="#">申报材料</a></li><li><a href="#">表格下载</a></li><li><a href="#">常见问题</a></li><li><a href="#">联系我们</a></li><li><a href="#">无障碍</a></li><li><a href="#">繁體版</a></li><li><a href="#">登录</a></li></ul></div></nav></div><div><div class="portal-promo"><img src="img/app-promo-phone.svg" alt="" width="44" height="44"/><span>下载“云溪人社”手机APP，随时查询办理进度、上传材料、接收审核提醒。扫码下载，或在各大应用商店搜索“云溪人社”。</span><button type="button" class="portal-btn">立即下载</button></div></div><div class="portal-body"><div class="portal-main"><div><div class="portal-notice">系统维护通知：本平台将于2026年9月20日（星期日）02:00至04:00进行系统维护，期间暂停服务。维护前保存的草稿不受影响。由此带来的不便，敬请谅解。</div></div><div><h2 class="portal-h1" id="portal-heading" tabindex="-1">灵活就业人员社会保险补贴——网上申领</h2></div><div><div class="portal-hero"><img src="img/hero-rowhouses.svg" alt="街区房屋与树木的插画" width="720" height="200"/></div></div><div><p>灵活就业人员社会保险补贴（以下简称“社保补贴”）是云溪市人力资源和社会保障局依据《云溪市就业补助资金管理办法》设立的就业扶持项目，所需资金由市、区两级就业补助资金列支。经认定的就业困难人员和离校2年内未就业的高校毕业生，以灵活就业形式实现就业并按规定以个人身份缴纳职工基本养老保险费和职工基本医疗保险费的，按其实际缴费额的三分之二给予补贴，补贴期限最长不超过3年；距法定退休年龄不足5年的，可延长至退休。补贴资金经公共就业服务机构审核、公示无异议后，由财政部门通过申领人社会保障卡金融账户拨付。本补贴不得与其他社会保险补贴重复享受，补贴期限自首次享受之月起连续计算。</p></div><div><div class="portal-legal"><p>申领条件。同时符合下列条件的人员，可以申领本补贴：（一）具有本市户籍，或持有本市居住证且在本市连续缴纳社会保险费满6个月；（二）已在户籍地或居住地公共就业服务机构办理灵活就业登记，且登记时间不少于30日；（三）属于经认定的就业困难人员，或离校2年内未就业的高校毕业生；（四）以个人身份在本市缴纳职工基本养老保险费和职工基本医疗保险费，且申领前无欠缴记录；（五）申领当月家庭人均月收入不高于本市最低生活保障标准的2倍（本市现行最低生活保障标准为每人每月1,090元）。享受其他社会保险补贴期间不得重复申领；已领取本补贴累计满36个月的，不再受理。</p></div></div><div><p>申请提交后，由申领人户籍地或居住地的区级公共就业服务机构受理并初审，初审通过的报市就业服务中心复核。经办机构可通过系统消息或电话通知申领人补正材料，申领人应自通知之日起5个工作日内完成补正；逾期未补正的，视为放弃本批次申领。复核通过的名单在本平台公示5个工作日，公示无异议的，由财政部门于次月完成资金拨付。对审核结论有异议的，可自结论作出之日起10个工作日内向受理机构提出书面复核申请，逾期不予受理。</p></div><div><div class="portal-deadline"><p>本批次补贴实行网上集中受理，申领人应通过本平台提交申请，经办机构按提交先后顺序审核。本批次申领截止时间为2026年10月30日（星期五）17:00，系统届时自动关闭。截止后提交或材料不全的申请，本批次不予受理，申领人可待下一批次公告发布后重新申领。</p></div></div><div><div class="portal-instruction"><p>申领前请准备下列材料。扫描件或照片须清晰完整，单个文件不超过5MB，格式为PDF、JPG或PNG。（1）本人有效居民身份证正反面；（2）灵活就业登记证明，可在“进度查询”栏目下载电子版；（3）就业困难人员认定证明，或毕业证书（离校2年内未就业高校毕业生提供）；（4）以个人身份缴纳社会保险费的缴费凭证，须覆盖申领期内全部月份；（5）家庭收入证明：工资流水、经营收入证明，或无收入承诺书（云人社表-07）。材料不齐或不清晰的，系统不予受理。</p></div></div><div><figure class="portal-figure"><img src="img/documents-checklist.svg" alt="申领所需五类材料示意：身份证、灵活就业登记证明、认定证明或毕业证书、社保缴费凭证、收入证明" width="720" height="120"/><figcaption>申领所需五类材料示意：身份证、灵活就业登记证明、认定证明或毕业证书、社保缴费凭证、收入证明</figcaption></figure></div><div><h3 class="portal-h2">申领信息填报</h3></div><div><div class="portal-instruction"><p>带 * 的为必填项，标注“（必填）”的项目也须填写。身份证号码、性别由实名登录信息自动带入，无需填写。页面20分钟无操作将自动退出，请及时点击“暂存”保存已填内容；填写过程中请勿使用浏览器“后退”按钮。</p></div></div><div class="portal-form"><div><div class="portal-field"><label for="portal-field-full-name">姓名<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-full-name" type="text" name="field-full-name"/><div class="help">请填写与居民身份证一致的姓名；少数民族姓名中的间隔符请使用“·”。</div></div></div><div><div class="portal-field"><label for="portal-field-date-of-birth">出生日期<span class="req-word"> (必填)</span></label><input id="portal-field-date-of-birth" type="date" name="field-date-of-birth"/><div class="help">格式为YYYY-MM-DD。申领人须年满16周岁且未达到法定退休年龄。</div></div></div><div><div class="portal-field"><label for="portal-field-phone">手机号码<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-phone" type="tel" name="field-phone"/><div class="help">请填写本人实名登记的11位手机号码，用于接收验证码及补正通知；工作日9:00—17:00经办人员可能致电核实。</div></div></div><div><div class="portal-field"><label for="portal-field-email">电子邮箱</label><input id="portal-field-email" type="email" name="field-email"/><div class="help">选填。填写后，审核结论及补正通知将同步发送至该邮箱。</div></div></div><div><div class="portal-field"><label for="portal-field-street-address">现居住地址<span class="req-word"> (必填)</span></label><input id="portal-field-street-address" type="text" name="field-street-address"/><div class="help">填写至门牌号；与居住证登记地址不一致的，以居住证登记地址为准。</div></div></div><div><div class="portal-field"><label for="portal-field-city-postcode">户籍所在区县及邮政编码<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-city-postcode" type="text" name="field-city-postcode"/><div class="help">本市户籍填写户口簿登记的区县；非本市户籍填写居住证签发区县。邮政编码为6位数字。</div></div></div><div><div class="portal-field"><label for="portal-field-household-size">家庭人口数（含本人）<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-household-size" type="number" name="field-household-size"/><div class="help">填写共同生活的家庭成员人数，含本人、配偶及未成年子女；在校就读的成年子女可计入，连续外出超过6个月的不计入。</div></div></div><div><div class="portal-field"><label for="portal-field-residence-type">户籍类型<span class="req-word"> (必填)</span></label><select id="portal-field-residence-type" name="field-residence-type"><option value="" selected="">请选择</option><option value="本市城镇户籍">本市城镇户籍</option><option value="本市农村户籍">本市农村户籍</option><option value="外省市户籍（持本市居住证）">外省市户籍（持本市居住证）</option><option value="其他">其他</option></select><div class="help">请按户口簿登记情况选择。非本市户籍人员须持有有效期内的本市居住证。</div></div></div><div><div class="portal-field"><label for="portal-field-monthly-income">家庭月收入（元）<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-monthly-income" type="number" name="field-monthly-income"/><div class="help">填写申领当月共同生活的家庭成员各类收入合计，含工资、经营性收入、养老金、失业保险金及最低生活保障金等，精确到元。</div></div></div><div><div class="portal-field"><label for="portal-field-income-source">主要收入来源<span class="req" aria-hidden="true"> *</span></label><select id="portal-field-income-source" name="field-income-source"><option value="" selected="">请选择</option><option value="灵活就业收入">灵活就业收入</option><option value="个体经营收入">个体经营收入</option><option value="家庭成员工资">家庭成员工资</option><option value="养老金或退休金">养老金或退休金</option><option value="失业保险金">失业保险金</option><option value="最低生活保障金">最低生活保障金</option><option value="无固定收入">无固定收入</option><option value="其他">其他</option></select><div class="help">选择占家庭收入比重最大的一项。</div></div></div><div><div class="portal-field"><label for="portal-field-proof-of-income">收入及缴费证明材料<span class="req-word"> (必填)</span></label><input id="portal-field-proof-of-income" type="file" name="field-proof-of-income"/><div class="help">上传近3个月的收入证明及以个人身份缴纳社会保险费的缴费凭证；无收入的上传无收入承诺书（云人社表-07）。支持PDF、JPG、PNG格式，单个文件不超过5MB。</div></div></div><div><div class="portal-field"><label for="portal-field-hardship-statement">就业困难情况说明</label><textarea id="portal-field-hardship-statement" name="field-hardship-statement"></textarea><div class="help">选填。简要说明本人就业困难的原因（如年龄偏大、身体状况、技能不足等）及目前灵活就业的具体内容，不超过500字。</div></div></div><div><div class="portal-check"><input id="portal-decision-share-data" type="checkbox" name="decision-share-data" checked=""/><label for="portal-decision-share-data">本人同意云溪市人力资源和社会保障局将本人申领信息共享给合作机构（含金融机构、培训机构及社会服务组织），用于向本人推荐相关就业服务及产品。<span class="consequence">勾选后，你的姓名、联系方式和本次申领的信息可能被提供给与人社局合作的机构，这些机构可能与你联系。这一项是可选的，勾不勾都不影响补贴审核。</span></label></div></div><div><div class="portal-check"><input id="portal-decision-attest" type="checkbox" name="decision-attest"/><label for="portal-decision-attest">本人承诺以上填报信息及所提交材料真实、准确、完整，如有虚假，愿承担相应法律责任，并全额退回已领取的补贴资金。</label></div></div><div class="portal-actions"><div><button type="button" class="portal-btn secondary">暂存</button></div><div><button type="button" class="portal-btn primary">提交申请</button></div><div><button type="button" class="portal-btn secondary">下载PDF</button></div></div></div><div><details class="portal-faq"><summary>问：哪些人可以申领？ 答：经认定的就业困难人员，以及离校2年内未就业的高校毕业生，以灵活就业形式实现就业并以个人身份缴纳职工基本养老保险费和职工基本医疗保险费的，可以申领。由用人单位缴纳社会保险费的人员不在申领范围。</summary><p></p></details></div><div><details class="portal-faq"><summary>问：审核需要多长时间？ 答：自受理之日起，区级初审一般在10个工作日内完成，市级复核在初审通过后5个工作日内完成，公示期为5个工作日，补正材料所用时间不计入。复核通过且公示无异议的，补贴资金于次月25日前拨付至申领人社会保障卡金融账户。</summary><p></p></details></div><div><details class="portal-faq"><summary>问：补贴标准是多少？ 答：按申领人以个人身份实际缴纳的职工基本养老保险费和职工基本医疗保险费之和的三分之二计算，不含大病医疗互助、滞纳金及补缴部分；月补贴额以本市上年度全口径城镇单位就业人员平均工资的60%为缴费基数计算的应缴费额的三分之二为上限。补贴按季度发放。</summary><p></p></details></div><div><details class="portal-faq"><summary>问：可以先保存，以后再接着填吗？ 答：可以。填写过程中随时点击“暂存”，草稿保留30天；用同一账号登录后可以继续填写。</summary><p></p></details></div><div><details class="portal-faq"><summary>问：申领期内社会保险费中断缴纳或存在欠费，如何处理？ 答：补贴以实际缴费月份为准，中断月份不予补贴，补贴期限亦不顺延。申领前存在欠费的，须先行补缴并取得缴费凭证后再行申领，补缴部分不纳入补贴范围。申领期内被用人单位录用并由单位缴纳社会保险费的，自录用次月起停止享受补贴，并应于30日内向经办机构报告。</summary><p></p></details></div><div><details class="portal-faq"><summary>问：审核未通过怎么办？ 答：审核结论及未通过原因将通过系统消息和短信告知申领人。对结论有异议的，可自结论作出之日起10个工作日内向受理机构提出书面复核申请；复核以原提交材料为依据，不再受理新增材料。复核维持原结论的，本批次不再受理同一事项的申领。</summary><p></p></details></div></div><div class="portal-side"><div><div class="portal-side-box"><div class="portal-side-title">相关链接</div><div class="portal-side-content"><ul><li><a href="#">就业困难人员认定</a></li><li><a href="#">灵活就业登记</a></li><li><a href="#">一次性创业补贴</a></li><li><a href="#">职业培训补贴</a></li><li><a href="#">社会保险缴费查询</a></li><li><a href="#">就业补助资金管理办法（PDF）</a></li><li><a href="#">2026年最低生活保障标准</a></li><li><a href="#">经办机构地址及电话</a></li></ul></div></div></div><div><div class="portal-rate"><strong>这个页面有帮助吗？</strong><span class="stars" aria-hidden="true">★★★★★</span><span>本页面对您是否有帮助？请为本次办事体验评分，帮助我们改进政务服务。评价仅需一分钟。</span></div></div><div class="portal-side-box"><div class="portal-side-title">通知公告</div><div class="portal-side-content"><ul><li><div>线下办理：各区公共就业服务大厅工作日8:30—11:30、13:30—17:00对外办公；市民服务中心（云溪大道240号）周六上午照常受理。</div></li><li><div>无障碍服务：市民服务中心提供手语翻译和大字版申领指南，有需要的请提前一个工作日致电预约。</div></li><li><div>防范诈骗提示：人社部门不会以任何名义收取申领费用，也不会要求申领人向个人账户转账。接到可疑电话或短信，请拨打12345反映。</div></li></ul></div></div></div></div><div class="portal-footer"><div><div class="portal-legal"><p>隐私声明。本页面收集的个人信息依据《云溪市就业补助资金管理办法》（云人社规〔2024〕3号）用于灵活就业人员社会保险补贴的资格审核、资金拨付及统计分析。申领人可自愿提供，但未提供必要信息的，可能无法通过审核。申领记录及佐证材料自作出审核结论之日起保存10年，期满后按规定销毁。为办理补贴，相关信息可能向财政部门、社会保险经办机构、开户银行及审计机关提供，或依法律法规规定向其他部门提供。申领人可向市人力资源和社会保障局信息保护工作机构申请查阅或更正本人信息。</p></div></div><div><ul><li><a href="#">关于本站</a></li><li><a href="#">隐私政策</a></li><li><a href="#">使用条款</a></li><li><a href="#">无障碍声明</a></li><li><a href="#">政府信息公开</a></li><li><a href="#">网站地图</a></li></ul></div></div><div class="portal-chat"><button type="button" class="portal-btn">在线客服</button></div></div>
+</body>
+</html>

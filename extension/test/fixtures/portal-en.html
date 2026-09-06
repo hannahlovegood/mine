@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Housing Stability Grant — online application</title>
+<style>
+/* Design tokens — "Editions" (§9). Two visual languages on one screen. */
+:root {
+  /* Before: the portal (government-portal vernacular, plausible not parodic) */
+  --portal-blue: #1e5aa8;
+  --portal-blue-dark: #164782;
+  --portal-panel: #eef1f5;
+  --portal-border: #c9d1dc;
+  --portal-text: #1b1f24;
+  --portal-muted: #4a5561;
+  --portal-alert: #c8102e;
+  --portal-warn: #fff3cd;
+  --portal-warn-border: #e0c36b;
+  --portal-link: #0b4ea2;
+  --portal-font:
+    'Public Sans', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', Arial, sans-serif;
+
+  /* After: the edition */
+  --paper: #ffffff;
+  --ink: #000000;
+  --graphite: #55534f;
+  --rule: #d8d5ce;
+  --stub: #f1efe9;
+  --pencil: #2743d9;
+  --pencil-soft: #e4e8fb;
+
+  --font-edition: 'Literata Variable', Literata, Georgia, 'Songti SC', 'Noto Serif CJK SC', serif;
+  --font-interface:
+    'Atkinson Hyperlegible', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', sans-serif;
+  --font-cjk-serif: 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
+  --font-cjk-sans: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+
+  /* Set by the UI from preferences */
+  --font-scale: 1;
+  --edition-size: calc(18px * var(--font-scale));
+  --edition-leading: 1.6;
+  --measure: 68ch;
+  --target: 44px;
+  --focus-ring: 3px solid var(--pencil);
+  --rule-weight: 1px;
+}
+
+:root[data-contrast='high'] {
+  --graphite: #2a2926;
+  --rule: #6b6862;
+  --stub: #ebe8e0;
+  --rule-weight: 2px;
+}
+
+:root[lang='zh'],
+:root[lang='zh-CN'] {
+  --edition-size: calc(17px * var(--font-scale));
+  --edition-leading: 1.8;
+  --measure: 40em;
+}
+
+body { margin: 0; background: #e9ecef; }
+.portal { max-width: 1100px; margin: 0 auto; }
+/* The portal — government-portal vernacular, plausible not parodic. Scoped under .portal */
+.portal {
+  font-family: var(--portal-font);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--portal-text);
+  background: #ffffff;
+  position: relative;
+  overflow: clip;
+}
+.portal a { color: var(--portal-link); text-decoration: underline; }
+.portal p { margin: 0 0 10px; }
+.portal ul, .portal ol { margin: 0 0 10px; padding-left: 22px; }
+.portal img { display: block; max-width: 100%; height: auto; }
+
+.portal-utility {
+  background: #f4f5f7;
+  border-bottom: 1px solid var(--portal-border);
+  font-size: 12px;
+  padding: 4px 16px;
+}
+.portal-utility ul { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 16px; list-style: none; margin: 0; padding: 0; }
+
+.portal-masthead { background: var(--portal-blue); color: #fff; padding: 12px 16px 0; }
+.portal-brand { font-weight: 700; font-size: 20px; letter-spacing: -0.01em; line-height: 1.1; }
+.portal-brand small { display: block; font-weight: 400; font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.portal-mainnav ul { display: flex; flex-wrap: wrap; gap: 0 2px; list-style: none; margin: 10px 0 0; padding: 0; font-size: 13px; }
+.portal-mainnav a { display: inline-block; color: #fff; text-decoration: none; padding: 7px 10px; border-bottom: 3px solid transparent; }
+.portal-mainnav a:hover, .portal-mainnav a:focus-visible { border-bottom-color: #fff; }
+.portal-mainnav li:first-child a { border-bottom-color: #ffffffaa; }
+
+.portal-promo {
+  background: #dfe9f7;
+  border-bottom: 1px solid #b9cbe6;
+  padding: 10px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.portal-promo img { width: 44px; height: 44px; flex: none; }
+.portal-promo .portal-btn { margin-left: auto; }
+
+.portal-notice {
+  background: var(--portal-warn);
+  border: 1px solid var(--portal-warn-border);
+  padding: 8px 12px;
+  margin: 12px 16px 0;
+  font-size: 13px;
+}
+.portal-notice::before { content: '⚠ '; }
+
+.portal-body { display: flex; gap: 24px; padding: 14px 16px 28px; }
+.portal-main { flex: 1 1 auto; min-width: 0; }
+.portal-side { flex: 0 0 236px; font-size: 13px; }
+@media (max-width: 720px) {
+  .portal-body { flex-direction: column; }
+  .portal-side { flex-basis: auto; }
+}
+
+.portal h1, .portal .portal-h1 { font-size: 26px; line-height: 1.15; font-weight: 700; margin: 6px 0 12px; color: #14325a; }
+.portal .portal-h2 { font-size: 19px; line-height: 1.2; font-weight: 700; margin: 22px 0 8px; color: #14325a; border-bottom: 2px solid var(--portal-blue); padding-bottom: 4px; }
+.portal .portal-h3 { font-size: 15px; font-weight: 700; margin: 14px 0 6px; }
+.portal-hero { margin: 0 0 12px; border: 1px solid var(--portal-border); }
+.portal-hero img { width: 100%; }
+.portal-figure { margin: 0 0 12px; }
+.portal-figure figcaption { font-size: 12px; color: var(--portal-muted); margin-top: 4px; }
+
+.portal-legal { font-size: 13px; line-height: 1.4; background: var(--portal-panel); border: 1px solid var(--portal-border); padding: 10px 12px; margin: 0 0 12px; }
+.portal-instruction { border-left: 4px solid var(--portal-blue); padding: 6px 12px; margin: 0 0 12px; background: #f7f9fc; }
+.portal-deadline { margin: 0 0 10px; }
+
+.portal-side-box { border: 1px solid var(--portal-border); margin: 0 0 14px; }
+.portal-side-box .portal-side-title { background: var(--portal-panel); border-bottom: 1px solid var(--portal-border); font-weight: 700; font-size: 13px; padding: 6px 10px; }
+.portal-side-box .portal-side-content { padding: 8px 10px; }
+.portal-side-box ul { list-style: none; padding: 0; margin: 0; }
+.portal-side-box li { padding: 4px 0; border-bottom: 1px dotted var(--portal-border); }
+.portal-side-box li:last-child { border-bottom: 0; }
+.portal-rate { border: 1px solid var(--portal-border); background: #f4f5f7; padding: 10px; font-size: 13px; text-align: center; }
+.portal-rate .stars { color: #d9a400; letter-spacing: 2px; font-size: 16px; display: block; margin: 4px 0; }
+
+.portal-form { background: var(--portal-panel); border: 1px solid var(--portal-border); padding: 12px 14px 16px; margin: 0 0 14px; }
+.portal-field { margin: 0 0 12px; }
+.portal-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.portal-field .req { color: var(--portal-alert); }
+.portal-field .req-word { font-weight: 400; color: var(--portal-muted); font-size: 12px; }
+.portal-field input, .portal-field select, .portal-field textarea {
+  font: inherit; font-size: 14px; width: 100%; max-width: 420px; padding: 6px 8px;
+  border: 1px solid #8b96a3; border-radius: 3px; background: #fff; color: inherit;
+}
+.portal-field textarea { min-height: 72px; }
+.portal-field .help { font-size: 12px; color: var(--portal-muted); margin-top: 3px; }
+.portal-check { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; font-size: 13px; }
+.portal-check input { margin-top: 3px; flex: none; }
+.portal-check .consequence { display: block; font-size: 12px; color: var(--portal-muted); margin-top: 2px; }
+
+.portal-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0 6px; }
+.portal-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 3px; cursor: pointer; border: 1px solid var(--portal-blue); background: #fff; color: var(--portal-blue); }
+.portal-btn.primary { background: var(--portal-blue); color: #fff; }
+.portal-btn.secondary { border-color: #8b96a3; color: #3c4653; background: #f7f8fa; }
+.portal-btn.pill { border-radius: 20px; background: #14325a; border-color: #14325a; color: #fff; padding: 7px 18px; }
+.portal-btn:hover { filter: brightness(0.96); }
+
+.portal-faq { border-top: 1px solid var(--portal-border); padding: 8px 0; }
+.portal-faq summary { font-weight: 600; cursor: pointer; font-size: 14px; }
+.portal-faq p { margin: 6px 0 0; font-size: 13px; }
+
+.portal-footer { background: #14325a; color: #d7e0ec; padding: 14px 16px 18px; font-size: 12px; }
+.portal-footer a { color: #fff; }
+.portal-footer ul { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0 0 10px; padding: 0; }
+.portal-footer .portal-legal { background: transparent; border: 0; padding: 0; color: #b7c4d6; font-size: 11px; margin: 0; }
+
+.portal-chat { position: sticky; bottom: 18px; height: 0; z-index: 2; pointer-events: none; }
+.portal-chat .portal-btn { position: absolute; right: 16px; bottom: 0; pointer-events: auto; border-radius: 24px; padding: 9px 16px; background: var(--portal-blue); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+
+</style>
+</head>
+<body>
+<link rel="preload" as="image" href="/img/app-promo-phone.svg"/><link rel="preload" as="image" href="/img/hero-rowhouses.svg"/><link rel="preload" as="image" href="/img/documents-checklist.svg"/><div class="portal" lang="en"><div class="portal-utility"><div><ul><li><a href="#">Text size</a></li><li><a href="#">Print</a></li><li><a href="#">Share</a></li><li><a href="#">Translate</a></li><li><a href="#">Help</a></li></ul></div></div><div class="portal-masthead"><div class="portal-brand">County benefits portal<small>Official website</small></div><nav class="portal-mainnav" aria-label="Site menu"><div><ul><li><a href="#">Home</a></li><li><a href="#">Benefits</a></li><li><a href="#">Housing</a></li><li><a href="#">Apply</a></li><li><a href="#">Check status</a></li><li><a href="#">Documents</a></li><li><a href="#">Forms</a></li><li><a href="#">FAQ</a></li><li><a href="#">Contact</a></li><li><a href="#">Accessibility</a></li><li><a href="#">Language</a></li><li><a href="#">Sign in</a></li></ul></div></nav></div><div><div class="portal-promo"><img src="img/app-promo-phone.svg" alt="" width="44" height="44"/><span>Get the Alder County Benefits app. Check your application status, upload documents and get reminders on your phone. Free on the App Store and Google Play.</span><button type="button" class="portal-btn">Get the app</button></div></div><div class="portal-body"><div class="portal-main"><div><div class="portal-notice">Scheduled maintenance: this portal will be unavailable on Sunday, September 20, 2026, from 2:00 to 4:00 a.m. Drafts saved before the outage will not be affected. We apologize for any inconvenience.</div></div><div><h2 class="portal-h1" id="portal-heading" tabindex="-1">Housing Stability Grant — online application</h2></div><div><div class="portal-hero"><img src="img/hero-rowhouses.svg" alt="Illustration of a row of houses on a tree-lined residential street" width="720" height="200"/></div></div><div><p>The Housing Stability Grant (HSG) is a means-tested, one-time assistance program administered by the Alder County Department of Community Services on behalf of the Board of Supervisors. The program provides remittance of rental arrears and associated utility arrears directly to the landlord or utility provider of an eligible household in order to prevent an imminent loss of tenancy. Awards are subject to the availability of appropriated funds and are issued in the order in which complete applications are adjudicated. Disbursement is contingent upon the execution of a landlord participation agreement and verification of the arrearage amount. Grant funds are not paid to applicants, do not constitute a recurring subsidy, and do not constitute a determination of eligibility for any other county, state or federal program.</p></div><div><div class="portal-legal"><p>Eligibility. An applicant shall be eligible for assistance under this program only where each of the following conditions is satisfied: (a) the applicant is a party to a written or oral tenancy agreement for a dwelling unit located within Alder County and has occupied the unit as their principal residence for not less than 90 days; (b) gross household income for the 30 days preceding the date of application does not exceed 80% of the area median income for Alder County, as published by the U.S. Department of Housing and Urban Development and adjusted for household size; (c) the household is in arrears of rent for a period of not less than 30 days, or has received a written notice to pay or quit; (d) the total amount requested does not exceed $2,500 per household in any 12-month period; and (e) no member of the household has received assistance under this program within the preceding 12 months. Households in receipt of a tenant-based housing subsidy are eligible only in respect of the tenant portion of the rent.</p></div></div><div><p>Applications are adjudicated by the Housing Services Division in the order in which they are deemed complete. An application is deemed complete only when every required field has been answered, every required document has been uploaded in an accepted format, and the landlord has returned the participation agreement. Applicants may be contacted by telephone or by secure message for clarification; a request for clarification that remains unanswered for 10 business days will result in the application being closed without prejudice. Determinations are issued in writing to the address of record. An applicant aggrieved by a determination may request reconsideration within 15 business days of the date of the determination letter by submitting Form HSG-7. Reconsideration is limited to the record as submitted; new documentation will not be accepted at that stage.</p></div><div><div class="portal-deadline"><p>Complete applications are reviewed in the order received, and the Division may close the application period early if the appropriated funds are exhausted. Applications must be received by 11:59 p.m. on Friday, October 23, 2026. Late or incomplete submissions will not be considered for this funding cycle; applicants may reapply in a subsequent cycle if one is announced.</p></div></div><div><div class="portal-instruction"><p>Before you begin, assemble the following documentation. Each file must be in PDF, JPG or PNG format and no larger than 10 MB. (1) Government-issued photo identification for the applicant. (2) Proof of tenancy: a current lease or, where no written lease exists, a notarized landlord affidavit (Form HSG-3). (3) Proof of income for every adult household member for the 30 days preceding the application: pay stubs, a benefits award letter, or a self-attestation of zero income. (4) A current rent ledger or a written statement from the landlord showing the arrearage amount and the period to which it relates. (5) Any notice to pay or quit, notice of termination or court filing received in connection with the tenancy. Incomplete submissions cannot be processed and will be returned to the applicant.</p></div></div><div><figure class="portal-figure"><img src="img/documents-checklist.svg" alt="The five documents you will need, in order: photo ID, lease, proof of income, rent ledger, and any notice from your landlord" width="720" height="120"/><figcaption>The five documents you will need, in order: photo ID, lease, proof of income, rent ledger, and any notice from your landlord</figcaption></figure></div><div><h3 class="portal-h2">Application form</h3></div><div><div class="portal-instruction"><p>Fields marked * are required. Fields marked (required) must also be completed. Your session will time out after 20 minutes of inactivity; use Save draft to keep your progress. Do not use the browser Back button while completing the form.</p></div></div><div class="portal-form"><div><div class="portal-field"><label for="portal-field-full-name">Full legal name<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-full-name" type="text" name="field-full-name"/><div class="help">Enter your name as it appears on your government-issued photo identification, including any middle name or suffix.</div></div></div><div><div class="portal-field"><label for="portal-field-date-of-birth">Date of birth<span class="req-word"> (required)</span></label><input id="portal-field-date-of-birth" type="date" name="field-date-of-birth"/><div class="help">Format MM/DD/YYYY. Applicants must be 18 years of age or older, or an emancipated minor with supporting documentation.</div></div></div><div><div class="portal-field"><label for="portal-field-phone">Telephone number<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-phone" type="tel" name="field-phone"/><div class="help">Include the area code. This number may be used for verification calls during business hours (8:00 a.m. to 5:00 p.m.).</div></div></div><div><div class="portal-field"><label for="portal-field-email">Email address</label><input id="portal-field-email" type="email" name="field-email"/><div class="help">If provided, determinations and requests for clarification will be sent to this address in lieu of postal mail.</div></div></div><div><div class="portal-field"><label for="portal-field-street-address">Street address of the rental unit<span class="req-word"> (required)</span></label><input id="portal-field-street-address" type="text" name="field-street-address"/><div class="help">The address of the unit for which assistance is requested, including the apartment or unit number.</div></div></div><div><div class="portal-field"><label for="portal-field-city-postcode">City and ZIP code<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-city-postcode" type="text" name="field-city-postcode"/><div class="help">The unit must be located within the unincorporated area of Alder County or in one of its participating municipalities.</div></div></div><div><div class="portal-field"><label for="portal-field-household-size">Household size<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-household-size" type="number" name="field-household-size"/><div class="help">Count every person who resides in the unit, including children and non-relatives. Do not count individuals who have been temporarily absent for more than 60 consecutive days.</div></div></div><div><div class="portal-field"><label for="portal-field-residence-type">Tenancy type<span class="req-word"> (required)</span></label><select id="portal-field-residence-type" name="field-residence-type"><option value="" selected="">Select…</option><option value="Written lease">Written lease</option><option value="Month-to-month agreement">Month-to-month agreement</option><option value="Oral agreement">Oral agreement</option><option value="Subsidized tenancy (voucher or project-based)">Subsidized tenancy (voucher or project-based)</option><option value="Other">Other</option></select><div class="help">Select the arrangement under which you occupy the unit. Subsidized tenancies are eligible for the tenant portion of the rent only.</div></div></div><div><div class="portal-field"><label for="portal-field-monthly-income">Gross monthly household income<span class="req" aria-hidden="true"> *</span></label><input id="portal-field-monthly-income" type="number" name="field-monthly-income"/><div class="help">Enter the combined gross income of all adult household members for the 30 days preceding the date of application, before taxes and deductions. Round to the nearest dollar.</div></div></div><div><div class="portal-field"><label for="portal-field-income-source">Primary source of household income<span class="req" aria-hidden="true"> *</span></label><select id="portal-field-income-source" name="field-income-source"><option value="" selected="">Select…</option><option value="Wages or salary">Wages or salary</option><option value="Self-employment">Self-employment</option><option value="Unemployment insurance">Unemployment insurance</option><option value="Social Security or SSI">Social Security or SSI</option><option value="Public assistance (TANF or General Assistance)">Public assistance (TANF or General Assistance)</option><option value="Child support or alimony">Child support or alimony</option><option value="No income">No income</option><option value="Other">Other</option></select><div class="help">Select the source that accounts for the largest share of household income.</div></div></div><div><div class="portal-field"><label for="portal-field-proof-of-income">Proof of income<span class="req-word"> (required)</span></label><input id="portal-field-proof-of-income" type="file" name="field-proof-of-income"/><div class="help">Upload pay stubs, an award letter or a completed zero-income self-attestation (Form HSG-5) for each adult household member. Accepted formats: PDF, JPG, PNG; maximum 10 MB per file.</div></div></div><div><div class="portal-field"><label for="portal-field-hardship-statement">Hardship statement</label><textarea id="portal-field-hardship-statement" name="field-hardship-statement"></textarea><div class="help">Optional. Briefly describe the circumstances that led to the arrearage (for example, loss of employment, medical expenses, or a reduction in hours). Maximum 1,000 characters.</div></div></div><div><div class="portal-check"><input id="portal-decision-share-data" type="checkbox" name="decision-share-data" checked=""/><label for="portal-decision-share-data">I agree that Alder County may share my application information with partner organizations so that they can contact me about related services for which I may be eligible.<span class="consequence">Checking this lets the county give your name, contact details and the information in this application to nonprofit and community organizations it works with. They may contact you about their services. It is optional, and your choice does not affect the grant decision.</span></label></div></div><div><div class="portal-check"><input id="portal-decision-attest" type="checkbox" name="decision-attest"/><label for="portal-decision-attest">I certify under penalty of perjury that the information provided in this application and in any attached documentation is true, correct and complete to the best of my knowledge, and I understand that any misrepresentation may result in denial of assistance, recovery of funds disbursed, and referral for prosecution.</label></div></div><div class="portal-actions"><div><button type="button" class="portal-btn secondary">Save draft</button></div><div><button type="button" class="portal-btn primary">Submit application</button></div><div><button type="button" class="portal-btn secondary">Download PDF</button></div></div></div><div><details class="portal-faq"><summary>Q: Who can apply? A: Any adult who rents a home in Alder County, is behind on rent or has received a notice from the landlord, and whose household income is within the program limit. Roommates who share a lease should submit one application per household.</summary><p></p></details></div><div><details class="portal-faq"><summary>Q: How long does a decision take? A: Adjudication typically takes 15 to 20 business days from the date an application is deemed complete, exclusive of any period during which a request for clarification is outstanding. Where funds are approved, remittance to the landlord is initiated within 10 business days of the execution of the participation agreement.</summary><p></p></details></div><div><details class="portal-faq"><summary>Q: Does the grant cover utility bills? A: Utility arrears are eligible only where the utility account is in the applicant&#x27;s name, the arrearage relates to the same dwelling unit, and the service is water, sewer, gas or electricity. Telecommunications, internet and cable services are ineligible. Utility arrears are paid in addition to, not in place of, rental arrears and are subject to the same per-household maximum.</summary><p></p></details></div><div><details class="portal-faq"><summary>Q: Can I save my application and finish later? A: Yes. Use Save draft at any point. Drafts are kept for 30 days. Sign in with the same account to continue where you left off.</summary><p></p></details></div><div><details class="portal-faq"><summary>Q: What if my landlord will not sign the participation agreement? A: Landlord participation is a condition of disbursement. Where a landlord declines to execute the agreement, the Division will make up to two documented attempts to contact the landlord; if participation cannot be secured, the application will be closed without prejudice and the applicant will be referred to the Tenant Rights and Mediation Program.</summary><p></p></details></div><div><details class="portal-faq"><summary>Q: What if my application is denied? A: A written determination stating the reason for denial will be issued to the address of record. You may request reconsideration within 15 business days by submitting Form HSG-7, which is available under Forms. Reconsideration is conducted on the existing record; no new documents may be added. If the denial is upheld, you may not reapply for the same arrearage in the current funding cycle.</summary><p></p></details></div></div><div class="portal-side"><div><div class="portal-side-box"><div class="portal-side-title">Related links</div><div class="portal-side-content"><ul><li><a href="#">Emergency Rental Assistance (closed)</a></li><li><a href="#">Utility Assistance Program</a></li><li><a href="#">Tenant Rights and Mediation Program</a></li><li><a href="#">Homelessness prevention hotline</a></li><li><a href="#">Find a community partner</a></li><li><a href="#">Landlord participation agreement</a></li><li><a href="#">Income limits 2026 (PDF)</a></li><li><a href="#">Program guidelines (PDF)</a></li></ul></div></div></div><div><div class="portal-rate"><strong>Was this page helpful?</strong><span class="stars" aria-hidden="true">★★★★★</span><span>Was this page helpful? Rate your experience and help us improve Alder County online services. It takes less than a minute.</span></div></div><div class="portal-side-box"><div class="portal-side-title">Announcements</div><div class="portal-side-content"><ul><li><div>Walk-in help: the Housing Services counter at 240 Main Street is open Monday to Friday, 8:30 a.m. to 4:30 p.m. No appointment is needed.</div></li><li><div>Language help: free interpretation is available by phone in Spanish, Vietnamese, Mandarin and Somali. Ask for an interpreter when you call.</div></li><li><div>Beware of scams. Alder County never charges a fee to apply and never asks for payment by gift card or wire transfer. Report suspicious calls or messages to the County Fraud Line.</div></li></ul></div></div></div></div><div class="portal-footer"><div><div class="portal-legal"><p>Privacy notice. The information collected on this form is requested under the authority of Alder County Code Chapter 8.24 and is used to determine eligibility for the Housing Stability Grant, to administer payments, and to compile program statistics. Provision of the requested information is voluntary; however, failure to provide it may result in the denial of assistance. Application records, including supporting documentation, are retained for 7 years from the date of final determination in accordance with the County Records Retention Schedule, after which they are destroyed. Information may be disclosed to the landlord or utility provider named in the application for the purpose of payment, to auditors, and as otherwise required by law. You may request access to, or correction of, your records by contacting the Records Custodian of the Department of Community Services.</p></div></div><div><ul><li><a href="#">About Alder County</a></li><li><a href="#">Privacy policy</a></li><li><a href="#">Terms of use</a></li><li><a href="#">Accessibility statement</a></li><li><a href="#">Public records request</a></li><li><a href="#">Site map</a></li></ul></div></div><div class="portal-chat"><button type="button" class="portal-btn">Chat with an agent</button></div></div>
+</body>
+</html>

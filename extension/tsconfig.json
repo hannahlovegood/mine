@@ -1,0 +1,15 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "paths": { "@engine/*": ["../src/engine/*"], "@app/*": ["../src/*"] }
+  },
+  "include": [".wxt/wxt.d.ts", "entrypoints", "src", "test", "../src/engine", "../src/copy.ts", "../src/ui/summary.ts", "../src/ui/blockNames.ts"]
+}

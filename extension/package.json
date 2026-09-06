@@ -1,0 +1,31 @@
+{
+  "name": "mine-extension",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Mine · 由我 — the freedom layer, on the page you are actually on.",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.2.8",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@wxt-dev/module-react": "^1.2.2",
+    "happy-dom": "^20.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
+    "wxt": "^0.21.4"
+  }
+}

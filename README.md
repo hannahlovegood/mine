@@ -40,6 +40,11 @@ npm run demo       # production build + preview on http://localhost:4173, all of
 
 Add `?demo=1` for the stage keys: `1` portal · `2` Focus · `3` My words (example prefilled) · `4` apply · `5` hold-to-compare · `6` ending · `r` reset. `?lang=en|zh` picks the language; the header toggles it.
 
+
+## The extension (in place, on real pages)
+
+`extension/` is the same engine on the page you are actually on: a Chromium extension that reads a page into blocks, applies your edition in place (the real form stays the real form), lists every change in a panel and undoes all of it on request. Build with `npm run ext:build`, load `extension/.output/chrome-mv3` unpacked. See [extension/README.md](extension/README.md).
+
 ## Environment
 
 Optional. Without a key, *My words* uses the offline interpreter and says so.

@@ -205,6 +205,26 @@ export const copy = {
   },
   'ending.repo': { en: 'See the code', zh: '看代码' },
   'ending.again': { en: 'Back to the lab', zh: '回到实验台' },
+
+  // Extension
+  'ext.button': { en: 'Make it mine', zh: '变成我的' },
+  'ext.button.active': { en: 'Mine · {mode}', zh: '由我 · {mode}' },
+  'ext.title': { en: 'This page, your edition', zh: '这个页面，你的版本' },
+  'ext.close': { en: 'Close', zh: '关闭' },
+  'ext.reading': { en: 'Reading the page…', zh: '正在读这个页面……' },
+  'ext.rewriting': { en: 'Rewriting in plain words…', zh: '正在改写成平实语言……' },
+  'ext.remembered': { en: 'Remembered for {host}. It will open this way next time.', zh: '已为 {host} 记住，下次打开就是这个版本。' },
+  'ext.forgotten': { en: 'This site is back to how it was published.', zh: '这个网站已回到原来的样子。' },
+  'ext.noModel': { en: 'Plain language needs a model server. Add one under Settings; everything else works offline.', zh: '平实语言需要模型服务，请在「设置」里填写；其余功能都离线可用。' },
+  'ext.noBlocks': { en: 'Mine could not find enough on this page to reorganise.', zh: '这个页面上没有找到足够的内容可以重排。' },
+  'ext.settings': { en: 'Settings', zh: '设置' },
+  'ext.server': { en: 'Model server', zh: '模型服务地址' },
+  'ext.server.hint': { en: 'Where My words and plain language are interpreted. Leave empty to stay offline.', zh: '「我的话」和平实语言在这里被理解。留空即完全离线。' },
+  'ext.lang': { en: 'Language of this panel', zh: '面板语言' },
+  'ext.lang.auto': { en: 'Follow the page', zh: '跟随页面' },
+  'ext.goto': { en: 'Go to it on the page', zh: '查看原文位置' },
+  'ext.blocks': { en: '{n} blocks read on this page', zh: '这个页面读到 {n} 个块' },
+  'ext.save': { en: 'Save', zh: '保存' },
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof copy;

@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Volunteer sign-up</title>
+<style>
+body { margin: 0; font-family: Georgia, serif; }
+#wrapper { max-width: 800px; margin: 0 auto; }
+#top { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #ccc; }
+#content div { margin: 0 0 12px; }
+#bottom { border-top: 1px solid #ccc; padding: 12px 0; color: #666; font-size: 13px; }
+</style>
+</head>
+<body>
+<div id="wrapper">
+  <div id="top">
+    <div class="brand">Riverside Community Garden</div>
+    <div class="links"><a href="#">Home</a> <a href="#">About</a> <a href="#">Volunteer</a> <a href="#">Contact</a></div>
+  </div>
+  <div id="content">
+    <h1>Volunteer sign-up</h1>
+    <div>Riverside Community Garden welcomes volunteers of all ages and abilities. No experience is needed: our session leaders will show you what to do and how to do it safely.</div>
+    <div><span>Sessions run every Saturday morning from 9 to 12. Tools and gloves are provided; please wear closed shoes and bring a bottle of water.</span></div>
+    <h2>Sign up</h2>
+    <div>Fill in the form below. We will email you the date of the next session within two days.</div>
+    <form action="#" method="post">
+      <div><input type="text" name="name" placeholder="Your name" required /></div>
+      <div><input type="email" name="email" placeholder="Email address" required /></div>
+      <div><input type="tel" name="phone" placeholder="Phone (optional)" /></div>
+      <div><select name="day"><option value="">Preferred day</option><option>Saturday</option><option>Sunday</option></select></div>
+      <div><textarea name="notes" placeholder="Anything we should know?"></textarea></div>
+      <div><input type="checkbox" name="newsletter" id="nl" /> <label for="nl">Send me the monthly newsletter</label></div>
+      <div><input type="submit" value="Sign me up" /></div>
+    </form>
+    <h2>What should I expect?</h2>
+    <div>Most sessions involve weeding, watering and mulching. Children are welcome when accompanied by an adult, and we stop for tea at half past ten.</div>
+  </div>
+  <div id="bottom">
+    <div>Riverside Community Garden is a registered charity. Questions? Write to hello@riverside.example or call 020 7946 0000.</div>
+  </div>
+</div>
+</body>
+</html>

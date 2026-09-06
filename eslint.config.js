@@ -7,7 +7,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'node_modules', '.vercel', 'public', 'coverage', 'docs/recordings']),
+  globalIgnores(['dist', 'node_modules', '.vercel', 'public', 'coverage', 'docs/recordings', 'extension']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
